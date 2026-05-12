@@ -2,7 +2,7 @@
 
 *The standard model assumes annuity revenue with patent-cliff erosion. Cell and gene therapy generates cash in a different shape entirely. Two recent deals that broke our validation set show the gap.*
 
-When we built the BioValue validation set we tried to fit eleven recent single-asset transactions to the standard rNPV framework. Seven of them fit cleanly inside a 30–65% Deal PV / Asset rNPV band. Two were dropped because the model output was incoherent.
+When we built the [BioValue](https://nealvybe.github.io/biovalue/) validation set we tried to fit eleven recent single-asset transactions to the standard rNPV framework. Seven of them fit cleanly inside a 30–65% Deal PV / Asset rNPV band. Two were dropped because the model output was incoherent.
 
 UCB/Neurona (NRTX-1001, cell therapy for drug-resistant temporal lobe epilepsy) produced Deal PV at **180%** of standalone Asset rNPV. Lilly/Verve (VERVE-102, in vivo CRISPR base editing for hypercholesterolemia) produced **525%**. Both deals are in the same general envelope as the validated comps in upfront and milestone economics. The difference isn't deal economics. The difference is that chronic-drug rNPV produces an Asset rNPV that's too small for both assets by 2× to 5×, which makes the "premium over standalone" ratio look enormous.
 

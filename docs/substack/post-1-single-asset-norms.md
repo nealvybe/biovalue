@@ -26,7 +26,7 @@ The upper bound (Asset rNPV) and lower bound (Commercial-adjusted) define the an
 
 ## The seven deals
 
-Here is the validation set. All single-asset deals where the lead asset clearly drives the economics, all signed in the eighteen months ending late 2025, all modeled from the ground up using public press releases, analyst consensus peak forecasts, and MIT Project ALPHA's biomarker-stratified probability-of-success database[^2].
+Here is the validation set. All single-asset deals where the lead asset clearly drives the economics, all signed in the eighteen months ending late 2025, all modeled from the ground up in [BioValue](https://nealvybe.github.io/biovalue/), an open-source rNPV calculator, using public press releases, analyst consensus peak forecasts, and MIT Project ALPHA's biomarker-stratified probability-of-success database[^2].
 
 | Deal | Stage | Asset rNPV | Comm-adj | Deal PV | Deal PV / rNPV |
 |---|---|---:|---:|---:|---:|
