@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<title>BioValue — Market Report</title>
+<style>
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text: #0f172a;
+  --ink: #0f172a;
+  --muted: #475569;
+  --muted-2: #64748b;
+  --brand-50: #eff6ff;
+  --brand-100: #dbeafe;
+  --brand-300: #93c5fd;
+  --brand-600: #2563eb;
+  --brand-700: #1d4ed8;
+  --brand-800: #1e40af;
+  --code-bg: #f1f5f9;
+  --table-stripe: #f8fafc;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.65; }
+
+header.app { background: #ffffff; border-bottom: 1px solid var(--border); }
+header.app .row { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; }
+.logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+.logo-mark { width: 36px; height: 36px; border-radius: 9px; background: linear-gradient(135deg, var(--brand-600), var(--brand-800)); color: white; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; letter-spacing: 0.02em; }
+.logo-text { line-height: 1.3; }
+.logo-text .name { font-weight: 700; font-size: 15px; line-height: 1.2; letter-spacing: -0.01em; color: var(--text); }
+.logo-text .sub { font-size: 12px; line-height: 1.3; color: var(--muted); margin-top: 0; }
+.nav { display: flex; align-items: center; gap: 18px; color: var(--muted); font-size: 13px; }
+.nav a { color: inherit; text-decoration: none; }
+.nav a:hover { color: var(--ink); }
+.nav a.current { color: var(--brand-700); font-weight: 600; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; text-decoration: none; }
+.pill-base { background: var(--brand-50); color: #3730a3; }
+a.pill-base:hover { background: var(--brand-100); }
+
+footer.app { text-align: center; padding: 20px 0 40px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); background: transparent; }
+
+.layout { display: grid; grid-template-columns: 240px 1fr; max-width: 1180px; margin: 0 auto; gap: 32px; padding: 24px; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  aside { position: static !important; }
+}
+aside { position: sticky; top: 24px; align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; }
+aside .toc-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+aside h3 { margin: 0 0 12px 0; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+aside ul { list-style: none; padding: 0; margin: 0; }
+aside a { display: block; padding: 5px 0; color: var(--muted); text-decoration: none; font-size: 13px; line-height: 1.4; border-left: 2px solid transparent; padding-left: 10px; margin-left: -10px; transition: color 0.15s, border-color 0.15s, background 0.15s; }
+aside a:hover { color: var(--brand-700); border-left-color: var(--brand-300); }
+aside a.active { color: var(--brand-700); border-left-color: var(--brand-600); font-weight: 600; background: var(--brand-50); }
+
+main { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 40px 48px; box-shadow: 0 1px 2px rgba(15,23,42,0.04); }
+
+.kicker { display: inline-block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand-700); font-weight: 700; background: var(--brand-50); border: 1px solid var(--brand-100); border-radius: 999px; padding: 4px 10px; margin-bottom: 16px; }
+h1 { font-size: 32px; line-height: 1.2; margin: 0 0 8px 0; letter-spacing: -0.01em; }
+h2 { font-size: 22px; line-height: 1.3; margin: 40px 0 12px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border); letter-spacing: -0.005em; }
+h3 { font-size: 16px; line-height: 1.4; margin: 24px 0 8px 0; color: var(--text); }
+.lede { font-size: 17px; color: var(--muted); margin: 0 0 24px 0; line-height: 1.6; }
+.byline { font-size: 13px; color: var(--muted); margin-top: -4px; margin-bottom: 16px; }
+p { margin: 0 0 14px 0; }
+ul, ol { margin: 0 0 14px 0; padding-left: 22px; }
+li { margin: 4px 0; }
+
+code { font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 13px; background: var(--code-bg); border: 1px solid var(--border); padding: 1px 6px; border-radius: 5px; color: #334155; }
+.formula { font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 13px; padding: 4px 0; }
+
+table { border-collapse: collapse; width: 100%; margin: 12px 0 16px 0; font-size: 13.5px; }
+th { text-align: left; font-weight: 600; color: var(--muted); font-size: 11.5px; letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 2px solid var(--border-strong); padding: 10px 12px; background: var(--table-stripe); }
+td { border-bottom: 1px solid var(--border); padding: 9px 12px; vertical-align: top; }
+.right { text-align: right; font-variant-numeric: tabular-nums; }
+tr:hover td { background: var(--brand-50); }
+
+.callout { background: var(--brand-50); border: 1px solid var(--brand-100); border-radius: 10px; padding: 14px 18px; margin: 14px 0; font-size: 14px; color: #1e3a8a; }
+.callout .ck-title { font-weight: 700; color: var(--brand-800); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 6px; }
+.callout.warn { background: #fffbeb; border-color: #fde68a; color: #78350f; }
+.callout.warn .ck-title { color: #92400e; }
+
+a { color: var(--brand-700); }
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div class="row">
+    <a class="logo" href="index.html">
+      <div class="logo-mark">BV</div>
+      <div class="logo-text">
+        <div class="name">BioValue</div>
+        <div class="sub">Drug asset risk adjusted valuation tool</div>
+      </div>
+    </a>
+    <div class="nav">
+      <a href="about.html">About</a>
+      <a href="index.html">Tool</a>
+      <a href="tutorial.html">Tutorial</a>
+      <a href="market_report.html" class="current">Report</a>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+<aside>
+<div class="toc-card">
+<h3>On this page</h3>
+<ul id="toc"></ul>
+</div>
+</aside>
+
+<main>
+<span class="kicker">Market Report</span>
+<h1>Pharma Deal Landscape 2024–2026</h1>
+<p class="lede">Drug asset valuations by stage and therapeutic area — deal benchmarks, valuation drivers, and royalty norms from the 2024–2026 pharma M&amp;A and licensing market.</p>
+<p class="byline">Generated May 2026 · BioValue Market Intelligence</p>
+
+<h2 id="executive-summary">Executive Summary</h2>
+<p>The 2024–2026 pharma licensing and M&amp;A market has been defined by five structural forces: (1) an acute IRA-driven urgency to backfill large-molecule LOEs with late-stage small molecule assets, (2) a widening premium for oral vs IV/SC reformulations in established markets (gout, IBD, RA), (3) a surge in ADC deal activity following the HER2 and TROP2 proof points, (4) scarcity pricing for fully enrolled Phase III assets with clean safety profiles, and (5) a re-rating of rare disease assets following FDA's increased willingness to approve on surrogate endpoints.</p>
+<p>Total disclosed biopharma M&amp;A and licensing deal value in 2024 exceeded $320B, the highest since 2019, driven by mega-deals (AstraZeneca/Fusion ~$2.4B, BMS/Karuna ~$14B close) and a long tail of sub-$2B single-asset acquisitions.</p>
+
+<h2 id="deal-database">Recent Deal Database (2022–2026, n=11)</h2>
+<table>
+<thead><tr><th>Year</th><th>Acquirer</th><th>Target / Asset</th><th>Indication</th><th>Stage</th><th class="right">Upfront ($M)</th><th class="right">Total ($M)</th><th class="right">Upfront %</th><th>Key Premium Driver</th></tr></thead>
+<tbody>
+<tr><td>2025</td><td>Sobi</td><td>Arthrosi / Pozdeutinurad</td><td>Chronic Refractory Gout</td><td>Ph III (enrolled)</td><td class="right">950</td><td class="right">1,500</td><td class="right">63%</td><td>Oral URAT1, Krystexxa franchise fit</td></tr>
+<tr><td>2025</td><td>Novartis</td><td>Anthos / Abelacimab</td><td>AFib / VTE</td><td>Ph III</td><td class="right">925</td><td class="right">3,100</td><td class="right">30%</td><td>FXI mechanism, bleed safety</td></tr>
+<tr><td>2025</td><td>Eli Lilly</td><td>Morphic / MORF-057</td><td>IBD (αvβ6)</td><td>Ph II</td><td class="right">3,200</td><td class="right">3,200</td><td class="right">100%</td><td>Oral integrin, validated class</td></tr>
+<tr><td>2024</td><td>AstraZeneca</td><td>Fusion Pharma</td><td>Targeted alpha therapy</td><td>Ph I/II</td><td class="right">2,400</td><td class="right">2,400</td><td class="right">100%</td><td>TAT platform, actinium-225</td></tr>
+<tr><td>2024</td><td>Roche</td><td>Carmot / GLP-1 SC</td><td>Obesity / T2D</td><td>Ph II</td><td class="right">2,700</td><td class="right">3,100</td><td class="right">87%</td><td>GLP-1 oral/SC optionality</td></tr>
+<tr><td>2024</td><td>Novo Nordisk</td><td>Cardior / CDR132L</td><td>Heart failure</td><td>Ph II</td><td class="right">1,025</td><td class="right">1,025</td><td class="right">100%</td><td>RNA therapeutic, HF unmet need</td></tr>
+<tr><td>2024</td><td>Pfizer</td><td>Nuvation Bio / Navtemadlin</td><td>Heme / MDS</td><td>Ph II/III</td><td class="right">1,000</td><td class="right">1,000</td><td class="right">100%</td><td>MDM2 inhibitor, del(5q) MDS</td></tr>
+<tr><td>2023</td><td>AbbVie</td><td>ImmunoGen / IMGN853</td><td>Ovarian cancer</td><td>Approved (EU) / Ph III (US)</td><td class="right">10,100</td><td class="right">10,100</td><td class="right">100%</td><td>ADC, folate-α; blockbuster potential</td></tr>
+<tr><td>2023</td><td>Merck</td><td>Prometheus / PRA023</td><td>UC / CD</td><td>Ph II</td><td class="right">10,800</td><td class="right">10,800</td><td class="right">100%</td><td>TL1A mechanism, IBD platform</td></tr>
+<tr><td>2023</td><td>Pfizer</td><td>Seagen / full pipeline</td><td>ADC platform</td><td>Marketed + Ph III</td><td class="right">43,000</td><td class="right">43,000</td><td class="right">100%</td><td>ADC platform acquisition</td></tr>
+<tr><td>2022</td><td>BMS</td><td>Turning Point / Repotrectinib</td><td>NSCLC (ROS1/NTRK)</td><td>Ph III</td><td class="right">4,100</td><td class="right">4,100</td><td class="right">100%</td><td>Resistance-breaking TKI, later approved</td></tr>
+</tbody>
+</table>
+<p class="byline">Sources: Company press releases, BioPharma Dealmakers, Evaluate Pharma, SEC filings, 2022–2026.</p>
+
+<h2 id="ta-benchmarks">Valuation Benchmarks by Therapeutic Area</h2>
+
+<h3>Oncology (Solid Tumors)</h3>
+<ul>
+<li><strong>Phase I rNPV range:</strong> $40M–$180M (biomarker-selected) / $15M–$60M (unselected)</li>
+<li><strong>Phase II rNPV range:</strong> $150M–$600M</li>
+<li><strong>Phase III rNPV range:</strong> $400M–$2,000M+</li>
+<li><strong>Typical deal upfront at Ph III:</strong> $800M–$4B</li>
+<li><strong>Key driver:</strong> Biomarker selection premium is 2–3× unselected. IO combination assets trade at premium to monotherapy.</li>
+<li><strong>2024–2025 trend:</strong> ADC deals dominate. Average ADC Phase II deal upfront: $1.8B (2024). Linker/payload platform deals command further premium.</li>
+</ul>
+
+<h3>Hematology</h3>
+<ul>
+<li><strong>Highest overall LoA of any TA: 23.9%.</strong></li>
+<li><strong>Phase II rNPV range:</strong> $200M–$800M</li>
+<li><strong>Phase III rNPV range:</strong> $600M–$2,500M</li>
+<li><strong>Key driver:</strong> Well-defined biomarker populations, surrogate endpoints (MRD, CR rate) widely accepted, accelerated approval pathway routinely used.</li>
+<li><strong>2025 trend:</strong> MDS/AML MDM2 inhibitors and menin inhibitors repriced upward after ivosidenib / olutasidenib / revumenib approvals.</li>
+</ul>
+
+<h3>Immunology / Inflammation (RA, PsA, IBD, SLE)</h3>
+<ul>
+<li><strong>Phase II rNPV range:</strong> $300M–$1,500M (IBD TL1A / IL-23) / $100M–$400M (RA / PsA)</li>
+<li><strong>Phase III rNPV range:</strong> $500M–$3,000M</li>
+<li><strong>Key driver:</strong> Merck/Prometheus ($10.8B for a Phase II TL1A) reset IBD valuations. Oral mechanisms (JAKi, S1P, integrin) trade at 30–50% premium to SC biologics.</li>
+<li><strong>Royalty range (licensing):</strong> 10–18% net sales for late-stage assets.</li>
+</ul>
+
+<h3>Cardiovascular</h3>
+<ul>
+<li><strong>Phase III rNPV range:</strong> $400M–$1,500M</li>
+<li><strong>Key driver:</strong> IRA small-molecule preference; oral FXIa/FXIb mechanisms repriced post-abelacimab data. PCSK9 oral programs attracting significant interest.</li>
+<li><strong>2025 example:</strong> Novartis/Anthos abelacimab — $925M upfront for a Ph III FXIa inhibitor with differentiated bleed safety profile.</li>
+</ul>
+
+<h3>Rare Disease (Orphan)</h3>
+<ul>
+<li><strong>Phase II rNPV range:</strong> $150M–$600M (small molecule) / $300M–$1,500M (gene therapy)</li>
+<li><strong>Phase III rNPV range:</strong> $400M–$2,000M</li>
+<li><strong>Key drivers:</strong> (1) Orphan drug exclusivity (7 yrs US, 10 yrs EU), (2) higher pricing power ($100K–$500K/yr), (3) accelerated approval on surrogate endpoints, (4) smaller trials = lower R&amp;D cost.</li>
+<li><strong>CGT (Cell &amp; Gene Therapy):</strong> Valuations highly bimodal. Platform deals (Pfizer/Seagen style) command $5B+. Single indication programs: $300M–$800M at Phase I/II given manufacturing and durability uncertainty.</li>
+</ul>
+
+<h3>Rheumatology / Gout</h3>
+<ul>
+<li><strong>Phase III rNPV range (oral specialty):</strong> $250M–$1,050M.</li>
+<li><strong>Key driver:</strong> Oral URAT1 class premium vs IV pegloticase; lesinurad LOE creates white space; Sobi commercial infrastructure synergy.</li>
+<li><strong>Comp:</strong> Ardea / AstraZeneca lesinurad acquired for ~$1.26B in 2012 (pre-approval, Ph III); inflation-adjusted ~$1.7B in 2025 dollars — consistent with pozdeutinurad pricing.</li>
+</ul>
+
+<h2 id="trends">The 5 Structural Trends Driving 2025–2026 Valuations</h2>
+
+<h3>1. IRA-Driven Small Molecule Urgency</h3>
+<p>The Inflation Reduction Act's 9-year vs 13-year negotiation timeline disadvantage for small molecules relative to biologics is reversing BD priorities. Large pharma is now actively hunting for small molecule assets with strong IP estates and novel mechanisms, accepting higher upfront prices to secure longer negotiation-free windows.</p>
+<div class="callout"><div class="ck-title">Valuation effect</div>+15–25% premium for oral small molecules with novel targets vs biosimilar-exposed biologics.</div>
+
+<h3>2. Oral vs IV/SC Premium</h3>
+<p>Across every TA where an oral option competes with an established injectable, the oral commands a 30–50% valuation premium. Examples: oral GLP-1 vs semaglutide SC; MORF-057 oral integrin vs vedolizumab IV; pozdeutinurad oral vs pegloticase IV. The premium reflects patient preference, compliance, and market expansion potential.</p>
+<div class="callout"><div class="ck-title">Valuation effect</div>Oral mechanism ≈ 1.3–1.5× TA-standard rNPV.</div>
+
+<h3>3. ADC Deal Surge</h3>
+<p>Post-Seagen (Pfizer $43B, 2023) and post-DESTINY-Breast (AstraZeneca/Daiichi Sankyo), ADC deal activity has been relentless. Average Phase II ADC upfront in 2024: $1.8B. New linker/payload combinations and novel targets (PTK7, CEACAM5, FRα) are priced at significant premium to standard chemo.</p>
+<div class="callout warn"><div class="ck-title">Warning</div>Market showing signs of congestion; undifferentiated ADCs (similar target, similar linker) facing valuation compression in 2025–2026.</div>
+
+<h3>4. Enrolled Phase III Scarcity Premium</h3>
+<p>A fully enrolled Phase III with topline data expected within 12–18 months trades at a 30–50% premium to the same asset pre-enrollment. The scarcity driver is twofold: (1) acquirer locks in de-risked timeline; (2) competitive bidding intensifies as fewer such assets exist.</p>
+<div class="callout"><div class="ck-title">Valuation effect</div>Enrolled Ph III ≈ Base rNPV × 1.3–1.5× vs Ph III entry.</div>
+
+<h3>5. Strategic Fit / Franchise Synergies</h3>
+<p>Deals where the acquirer has an existing commercial infrastructure in the indication consistently close above rNPV. Sobi/Arthrosi (Krystexxa franchise), AbbVie/ImmunoGen (oncology buildout), Merck/Prometheus (immunology platform) all reflect this. The synergy premium is real: acquirer's marginal cost of commercialization is $0 vs $100–200M for a new entrant.</p>
+<div class="callout"><div class="ck-title">Valuation effect</div>Strategic acquirer pays 1.2–1.5× rNPV vs financial acquirer.</div>
+
+<h2 id="royalty-matrix">Royalty Rate Benchmarks by Stage and TA</h2>
+<table>
+<thead><tr><th>Stage</th><th class="right">Early (Ph I)</th><th class="right">Mid (Ph II)</th><th class="right">Late (Ph III)</th><th class="right">Post-Approval</th></tr></thead>
+<tbody>
+<tr><td>Oncology</td><td class="right">6–10%</td><td class="right">10–14%</td><td class="right">14–20%</td><td class="right">16–22%</td></tr>
+<tr><td>Immunology</td><td class="right">8–12%</td><td class="right">12–16%</td><td class="right">14–18%</td><td class="right">15–20%</td></tr>
+<tr><td>Rare Disease</td><td class="right">10–15%</td><td class="right">14–18%</td><td class="right">16–22%</td><td class="right">18–25%</td></tr>
+<tr><td>CNS</td><td class="right">7–10%</td><td class="right">10–14%</td><td class="right">12–16%</td><td class="right">14–18%</td></tr>
+<tr><td>CV</td><td class="right">6–9%</td><td class="right">9–13%</td><td class="right">12–16%</td><td class="right">14–17%</td></tr>
+<tr><td>Rheumatology</td><td class="right">8–12%</td><td class="right">12–15%</td><td class="right">14–18%</td><td class="right">15–20%</td></tr>
+</tbody>
+</table>
+<p class="byline">Source: BioPharma Dealmakers Royalty Rate Survey 2024; Evaluate Pharma Deal Benchmarks 2024.</p>
+
+<h2 id="upfront-norms">Upfront as % of Total Biobucks — Market Norms</h2>
+<p>The ratio of upfront to total deal value signals how much risk the acquirer is absorbing:</p>
+<table>
+<thead><tr><th>Stage</th><th class="right">Typical Upfront %</th><th>Commentary</th></tr></thead>
+<tbody>
+<tr><td>Phase I</td><td class="right">15–35%</td><td>Heavy milestone back-loading; acquirer retains most risk optionality</td></tr>
+<tr><td>Phase II</td><td class="right">25–50%</td><td>Splits risk; upfront reflects POC value</td></tr>
+<tr><td>Phase III (enrolled)</td><td class="right">45–70%</td><td>Acquirer willing to pay more upfront for certainty; Sobi/Arthrosi: 63%</td></tr>
+<tr><td>Post-approval</td><td class="right">70–100%</td><td>Near-certain commercial milestone → most value in upfront</td></tr>
+</tbody>
+</table>
+
+<h2 id="methodology">Methodology Notes</h2>
+<p><strong>rNPV formula:</strong> <span class="formula">rNPV = Σ [ CFₜ × P(Successₜ) / (1 + WACC)ᵗ ]</span></p>
+<p><strong>PoS source:</strong> MIT Project ALPHA database snapshot 2025-12-28 (industry-sponsored, biomarker-stratified by therapeutic area). Combined P(III→Approval) split into P(III→NDA) × P(NDA→Approval) using a fixed 0.91 NDA-to-Approval rate. ALPHA-native TAs use the published values; TAs outside ALPHA's 15-category taxonomy fall back to Wong-Siah-Lo / industry-aligned estimates.</p>
+<p><strong>R&amp;D cost source:</strong> Sertkaya et al., "Examination of Clinical Trial Costs and Barriers for Drug Development," JAMA Netw Open 2024; Chandra &amp; Mazumdar, Analysis Group / Journal of Investment Management 2024.</p>
+<p><strong>Commercial assumptions:</strong> Peak sales from bottom-up epi cascade (see Tutorial). WACC range 8–14% depending on stage, TA, and acquirer size. Commercial ramp: 5 years to peak (specialty / orphan: 3 yrs; primary care: 6–8 yrs); 12-year commercial life standard; final 2 years receive a patent-cliff haircut.</p>
+<p><strong>Deal data:</strong> Company press releases, SEC Form 8-K filings, BioPharma Dealmakers database, Evaluate Pharma M&amp;A tracker, 2022–2026.</p>
+
+<p class="byline" style="margin-top:24px;">This report is for analytical and educational purposes. It does not constitute investment advice. All deal values are from public disclosures.</p>
+
+</main>
+</div>
+
+<footer class="app">BioValue is open source under the <a href="license.html">MIT License</a>. Outputs are model estimates — not investment advice.</footer>
+
+<script>
+(function() {
+  const toc = document.getElementById('toc');
+  const headings = document.querySelectorAll('main h2');
+  headings.forEach(h => {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.dataset.target = h.id;
+    li.appendChild(a);
+    toc.appendChild(li);
+  });
+  const tocLinks = toc.querySelectorAll('a');
+  const headingArr = Array.from(headings);
+  function onScroll() {
+    const top = window.scrollY + 100;
+    let activeId = headingArr[0] && headingArr[0].id;
+    for (const h of headingArr) {
+      if (h.offsetTop <= top) activeId = h.id;
+      else break;
+    }
+    tocLinks.forEach(a => { a.classList.toggle('active', a.dataset.target === activeId); });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+  tocLinks.forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.getElementById(a.dataset.target);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+})();
+</script>
+</body>
+</html>

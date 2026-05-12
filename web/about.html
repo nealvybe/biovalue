@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<title>BioValue — About</title>
+<style>
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text: #0f172a;
+  --ink: #0f172a;
+  --muted: #475569;
+  --muted-2: #64748b;
+  --brand-50: #eff6ff;
+  --brand-100: #dbeafe;
+  --brand-300: #93c5fd;
+  --brand-600: #2563eb;
+  --brand-700: #1d4ed8;
+  --brand-800: #1e40af;
+  --code-bg: #f1f5f9;
+  --table-stripe: #f8fafc;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.65; }
+
+header.app { background: #ffffff; border-bottom: 1px solid var(--border); }
+header.app .row { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; }
+.logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+.logo-mark { width: 36px; height: 36px; border-radius: 9px; background: linear-gradient(135deg, var(--brand-600), var(--brand-800)); color: white; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; letter-spacing: 0.02em; }
+.logo-text { line-height: 1.3; }
+.logo-text .name { font-weight: 700; font-size: 15px; line-height: 1.2; letter-spacing: -0.01em; color: var(--text); }
+.logo-text .sub { font-size: 12px; line-height: 1.3; color: var(--muted); margin-top: 0; }
+.nav { display: flex; align-items: center; gap: 18px; color: var(--muted); font-size: 13px; }
+.nav a { color: inherit; text-decoration: none; }
+.nav a:hover { color: var(--ink); }
+.nav a.current { color: var(--brand-700); font-weight: 600; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; text-decoration: none; }
+.pill-base { background: var(--brand-50); color: #3730a3; }
+a.pill-base:hover { background: var(--brand-100); }
+
+footer.app { text-align: center; padding: 20px 0 40px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); background: transparent; }
+
+.layout { display: grid; grid-template-columns: 240px 1fr; max-width: 1180px; margin: 0 auto; gap: 32px; padding: 24px; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } aside { position: static !important; } }
+aside { position: sticky; top: 24px; align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; }
+aside .toc-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+aside h3 { margin: 0 0 12px 0; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+aside ul { list-style: none; padding: 0; margin: 0; }
+aside a { display: block; padding: 5px 0; color: var(--muted); text-decoration: none; font-size: 13px; line-height: 1.4; border-left: 2px solid transparent; padding-left: 10px; margin-left: -10px; transition: color 0.15s, border-color 0.15s, background 0.15s; }
+aside a:hover { color: var(--brand-700); border-left-color: var(--brand-300); }
+aside a.active { color: var(--brand-700); border-left-color: var(--brand-600); font-weight: 600; background: var(--brand-50); }
+
+main { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 40px 48px; box-shadow: 0 1px 2px rgba(15,23,42,0.04); }
+
+.kicker { display: inline-block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand-700); font-weight: 700; background: var(--brand-50); border: 1px solid var(--brand-100); border-radius: 999px; padding: 4px 10px; margin-bottom: 16px; }
+h1 { font-size: 32px; line-height: 1.2; margin: 0 0 8px 0; letter-spacing: -0.01em; }
+h2 { font-size: 22px; line-height: 1.3; margin: 40px 0 12px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border); letter-spacing: -0.005em; }
+h3 { font-size: 16px; line-height: 1.4; margin: 24px 0 8px 0; color: var(--text); }
+.lede { font-size: 17px; color: var(--muted); margin: 0 0 24px 0; line-height: 1.6; }
+p { margin: 0 0 14px 0; }
+ul, ol { margin: 0 0 14px 0; padding-left: 22px; }
+li { margin: 4px 0; }
+
+code { font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 13px; background: var(--code-bg); border: 1px solid var(--border); padding: 1px 6px; border-radius: 5px; color: #334155; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; margin: 0 0 14px 0; }
+pre code { background: transparent; border: none; padding: 0; }
+
+table { border-collapse: collapse; width: 100%; margin: 12px 0 16px 0; font-size: 14px; }
+th { text-align: left; font-weight: 600; color: var(--muted); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 2px solid var(--border-strong); padding: 10px 12px; background: var(--table-stripe); }
+td { border-bottom: 1px solid var(--border); padding: 10px 12px; vertical-align: top; }
+tr:hover td { background: var(--brand-50); }
+
+.callout { background: var(--brand-50); border: 1px solid var(--brand-100); border-radius: 10px; padding: 14px 18px; margin: 14px 0; font-size: 14px; color: #1e3a8a; }
+.callout .ck-title { font-weight: 700; color: var(--brand-800); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 6px; }
+
+.btn-link { display: inline-block; padding: 10px 18px; background: var(--brand-600); color: white; border-radius: 9px; font-size: 14px; font-weight: 600; text-decoration: none; margin-right: 8px; margin-top: 6px; }
+.btn-link:hover { background: var(--brand-700); color: white; }
+.btn-link.secondary { background: var(--surface); color: var(--brand-700); border: 1px solid var(--brand-300); }
+.btn-link.secondary:hover { background: var(--brand-50); }
+
+.formula { font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 13px; }
+a { color: var(--brand-700); }
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div class="row">
+    <a class="logo" href="index.html">
+      <div class="logo-mark">BV</div>
+      <div class="logo-text">
+        <div class="name">BioValue</div>
+        <div class="sub">Drug asset risk adjusted valuation tool</div>
+      </div>
+    </a>
+    <div class="nav">
+      <a href="about.html" class="current">About</a>
+      <a href="index.html">Tool</a>
+      <a href="tutorial.html">Tutorial</a>
+      <a href="market_report.html">Report</a>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+<aside>
+<div class="toc-card">
+<h3>On this page</h3>
+<ul id="toc"></ul>
+</div>
+</aside>
+
+<main>
+<span class="kicker">About</span>
+<h1>BioValue</h1>
+<p class="lede">A risk-adjusted NPV (rNPV) framework for valuing pharmaceutical drug assets from preclinical through commercial launch. Built for biotech and pharma BD analysts, investors, and operators who need a fast, defensible standalone valuation of a single asset and a structured comparison to deal economics.</p>
+
+<p>
+  <a class="btn-link" href="index.html">Open the calculator</a>
+  <a class="btn-link secondary" href="tutorial.html">Read the tutorial</a>
+</p>
+
+<h2 id="what-it-is">What it is</h2>
+<p>BioValue is a single-page web app (no build step, no backend) that computes three values for any drug asset:</p>
+<ul>
+<li><strong>Asset rNPV</strong> — standalone risk-adjusted NPV at the acquirer's WACC, full peak, full launch probability. Represents the asset's full economic value owned 100%.</li>
+<li><strong>Commercial-adjusted rNPV</strong> — same engine re-run at fixed 14% WACC, peak × 0.60, commercial PoS × 0.85. A conservative BD-realistic lower bound.</li>
+<li><strong>Deal PV</strong> — upfront + risk-adjusted milestone PV + (for licensing deals) royalty stream PV.</li>
+</ul>
+<p>Deal PV typically sits inside the <code>[Comm-adj, Asset rNPV]</code> range. Where it sits communicates risk-sharing intensity.</p>
+
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>MIT Project ALPHA PoS</strong> — phase-transition probability of success benchmarks by therapeutic area (19 TAs), biomarker-stratified, snapshot 2025-12-28.</li>
+<li><strong>Differentiation flag catalog</strong> — BTD, Fast Track, biomarker selection, FIC, BIC, oral-vs-injectable, orphan, and more — applied via two-pass stacking on top of the baseline PoS.</li>
+<li><strong>Indication library</strong> — 39 conditions with sourced epi cascades (CDC, SEER, NCCN, ADA, AHA, etc.). Type-ahead search autofills the cascade.</li>
+<li><strong>Bear / Base / Bull scenarios</strong> — peak revenue × 0.7 / 1.0 / 1.3.</li>
+<li><strong>Sensitivity table</strong> — rNPV at WACC × scenario.</li>
+<li><strong>Deal Analysis tab</strong> — Range / Waterfall / Calibration data sub-tabs, with 7 validated single-asset deal presets.</li>
+<li><strong>localStorage persistence</strong> — your inputs survive page reloads.</li>
+</ul>
+
+<h2 id="quick-start">Quick start</h2>
+<ol>
+<li>Open <code>web/index.html</code> in any modern browser, or click <strong>Tool</strong> in the top nav.</li>
+<li>On the <strong>Asset</strong> tab, pick a validated preset from the "Load a prior deal" dropdown — Pozdeutinurad, Abelacimab, Restoret, Efimosfermin, Farabursen, ISB 2001, or VG-3927.</li>
+<li>Each preset populates every input across all seven tabs with values calibrated to analyst consensus peak sales within ±5%.</li>
+<li>Read the headline rNPV on the <strong>Summary</strong> tab. The full Asset rNPV / Comm-adj / Deal PV breakdown lives on the <strong>Deal Analysis</strong> tab.</li>
+</ol>
+<p>To model your own asset, click <strong>Reset</strong> in the top bar and fill in the inputs across the tabs (or load a preset and modify from there).</p>
+
+<h2 id="repo">Repository structure</h2>
+<pre><code>biovalue/
+├── README.md                          ← Source README (Markdown)
+├── web/
+│   ├── index.html                     ← The web app (single file)
+│   ├── about.html                     ← This page
+│   ├── tutorial.html                  ← Step-by-step user guide
+│   ├── market_report.html             ← Pharma deal landscape 2024–2026
+│   ├── license.html                   ← MIT license
+│   └── favicon.svg
+├── docs/
+│   ├── TUTORIAL.md                    ← Tutorial source (Markdown)
+│   ├── MARKET_REPORT.md               ← Market report source (Markdown)
+│   └── DEAL_VALIDATION_ANALYSIS.md    ← Methodology &amp; calibration
+├── data/
+│   ├── mit_alpha/                     ← MIT Project ALPHA snapshot
+│   └── biovalue_multi_deal_reports/   ← Reference deal docs
+└── scripts/
+    └── validate_presets.js            ← Engine validation runner (Node)</code></pre>
+
+<h2 id="formula">The rNPV formula</h2>
+<p class="formula">rNPV = Σ [ CFₜ × P(reach t) / (1 + r)ᵗ ] − Σ R&amp;D-cost PV</p>
+<p>R&amp;D costs are probability-weighted by cumulative likelihood of reaching each stage, then discounted at WACC. Commercial revenue is addressable WW peak pool × peak market share × ramp × year-by-year discount × cumulative LoA, with a patent-cliff haircut on terminal years. See the methodology card on the Summary tab inside the app.</p>
+
+<h2 id="data-sources">Data sources</h2>
+<table>
+<thead><tr><th>Data</th><th>Source</th><th>Year</th></tr></thead>
+<tbody>
+<tr><td>Phase transition PoS</td><td>MIT Project ALPHA database (industry-sponsored, biomarker-stratified)</td><td>Snapshot 2025-12-28</td></tr>
+<tr><td>Fallback PoS for non-ALPHA TAs</td><td>Wong &amp; Siah &amp; Lo, Biostatistics</td><td>2019</td></tr>
+<tr><td>Phase durations</td><td>Sertkaya et al., JAMA Network Open</td><td>2024</td></tr>
+<tr><td>R&amp;D costs by phase</td><td>Chandra &amp; Mazumdar, Analysis Group / Journal of Investment Management</td><td>2024</td></tr>
+<tr><td>Indication library</td><td>CDC, SEER, NCCN, ADA, AHA, DelveInsight, NIH, primary literature (per indication)</td><td>2023–2025</td></tr>
+<tr><td>Deal benchmarks &amp; royalties</td><td>BioPharma Dealmakers, Evaluate Pharma, company press releases</td><td>2022–2026</td></tr>
+</tbody>
+</table>
+
+<h2 id="validation">Validation</h2>
+<p>The model is calibrated against seven single-asset deals signed 2024–2026. See <code>docs/DEAL_VALIDATION_ANALYSIS.md</code> for methodology, sources, and per-deal narratives. Median Deal PV / Asset rNPV ratio across the validation set: <strong>55%</strong>.</p>
+
+<table>
+<thead><tr><th>Deal</th><th>Stage</th><th>Year</th></tr></thead>
+<tbody>
+<tr><td>Sobi / Arthrosi (Pozdeutinurad)</td><td>Phase III</td><td>2025</td></tr>
+<tr><td>Novartis / Anthos (Abelacimab)</td><td>Phase III</td><td>2025</td></tr>
+<tr><td>Merck / EyeBio (Restoret)</td><td>Phase II</td><td>2024</td></tr>
+<tr><td>GSK / Boston (Efimosfermin)</td><td>Phase III</td><td>2025</td></tr>
+<tr><td>Novartis / Regulus (Farabursen)</td><td>Phase III</td><td>2025</td></tr>
+<tr><td>AbbVie / IGI (ISB 2001)</td><td>Phase II</td><td>2025</td></tr>
+<tr><td>Sanofi / Vigil (VG-3927)</td><td>Phase II</td><td>2025</td></tr>
+</tbody>
+</table>
+
+<h2 id="license">License</h2>
+<p>MIT. Outputs are model estimates, not investment advice.</p>
+
+</main>
+</div>
+
+<footer class="app">BioValue is open source under the <a href="license.html">MIT License</a>. Outputs are model estimates — not investment advice.</footer>
+
+<script>
+(function() {
+  const toc = document.getElementById('toc');
+  const headings = document.querySelectorAll('main h2');
+  headings.forEach(h => {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.dataset.target = h.id;
+    li.appendChild(a);
+    toc.appendChild(li);
+  });
+  const tocLinks = toc.querySelectorAll('a');
+  const headingArr = Array.from(headings);
+  function onScroll() {
+    const top = window.scrollY + 100;
+    let activeId = headingArr[0] && headingArr[0].id;
+    for (const h of headingArr) {
+      if (h.offsetTop <= top) activeId = h.id;
+      else break;
+    }
+    tocLinks.forEach(a => { a.classList.toggle('active', a.dataset.target === activeId); });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+  tocLinks.forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.getElementById(a.dataset.target);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+})();
+</script>
+</body>
+</html>

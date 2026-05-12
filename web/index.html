@@ -1,0 +1,2739 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%232563eb'/%3E%3Cstop offset='100%25' stop-color='%231e40af'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Helvetica,Arial,sans-serif' font-weight='800' font-size='26' fill='white' letter-spacing='0.5'%3EBV%3C/text%3E%3C/svg%3E" />
+<title>BioValue — Drug Asset rNPV Calculator</title>
+<meta name="description" content="Risk-adjusted NPV valuation for pharmaceutical drug assets from IND-ready through commercial launch." />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f6f7fb;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --border-strong: #d1d5db;
+    --ink: #0b1220;
+    --muted: #475569;
+    --muted-2: #64748b;
+    --brand-50: #eef4ff;
+    --brand-100: #dde9ff;
+    --brand-600: #2563eb;
+    --brand-700: #1d4ed8;
+    --brand-800: #1e40af;
+    --bear: #b91c1c;
+    --base: #1d4ed8;
+    --bull: #047857;
+    --warn-bg: #fff7ed;
+    --warn-bd: #fed7aa;
+    --warn-fg: #9a3412;
+    --hl-bg: #fef3c7;
+    --hl-bd: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px; line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+  }
+  .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+  header.app { background: #ffffff; border-bottom: 1px solid var(--border); }
+  header.app .row {
+    max-width: 1280px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+  .logo-mark {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--brand-600), var(--brand-800));
+    color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; letter-spacing: 0.02em;
+  }
+  .logo-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.3; }
+  .logo-text .name { font-weight: 700; font-size: 15px; line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); }
+  .logo-text .sub { font-size: 12px; line-height: 1.3; color: var(--muted); margin-top: 0; }
+  .nav { display: flex; align-items: center; gap: 18px; color: var(--muted); font-size: 13px; }
+  .nav a { color: inherit; text-decoration: none; }
+  .nav a:hover { color: var(--ink); }
+  .nav a.current { color: var(--brand-700); font-weight: 600; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+    text-decoration: none;
+  }
+  .pill-base { background: var(--brand-50); color: #3730a3; }
+  a.pill-base:hover { background: var(--brand-100); }
+  .pill-bear { background: #fef2f2; color: #991b1b; }
+  .pill-bull { background: #ecfdf5; color: #065f46; }
+  .pill-current { background: var(--warn-bg); color: var(--warn-fg); border: 1px solid var(--warn-bd); }
+  .pill-est { background: #fef9c3; color: #854d0e; }
+  .pill-conv { background: #f1f5f9; color: #334155; font-weight: 500; }
+  .pill-active { background: #ecfdf5; color: #065f46; }
+
+  main { max-width: 1280px; margin: 0 auto; padding: 24px; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+    padding: 20px; margin-bottom: 16px;
+  }
+  .card .hdr { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; gap: 12px; }
+  .card .hdr .title { font-weight: 700; font-size: 14px; letter-spacing: -0.01em; }
+  .card .hdr .hint { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .field { display: block; }
+  .field .label-row {
+    display: grid;
+    grid-template-columns: minmax(60px, auto) minmax(0, 1fr);
+    gap: 10px;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .field .hint {
+    font-size: 10px;
+    color: var(--muted-2);
+    text-align: right;
+    line-height: 1.35;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .field input[type="number"], .field input[type="text"], .field select, .field textarea {
+    width: 100%;
+    border: 1px solid var(--border-strong);
+    background: #ffffff;
+    border-radius: 9px;
+    padding: 8px 11px;
+    font-size: 13px; color: var(--ink);
+    font-family: inherit;
+  }
+  .field input[type="number"] { font-variant-numeric: tabular-nums; }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none; border-color: var(--brand-600);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+  }
+  .field .suffix-wrap { position: relative; }
+  .field .suffix { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--muted-2); pointer-events: none; }
+  .field .suffix-wrap input { padding-right: 36px; }
+  .field .range-row { display: grid; grid-template-columns: 1fr 64px; gap: 10px; align-items: center; }
+  .field input[type="range"] { accent-color: var(--brand-600); width: 100%; }
+  .field .range-val { text-align: right; font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .reset-btn {
+    margin-top: 6px; padding: 4px 10px; font-size: 11px; font-weight: 600;
+    background: #f1f5f9; color: #475569; border: 1px solid var(--border);
+    border-radius: 6px; cursor: pointer; font-family: inherit;
+  }
+  .reset-btn:hover { background: var(--brand-50); border-color: var(--brand-300); color: var(--brand-700); }
+  .reset-btn:disabled { opacity: 0.45; cursor: default; background: #f8fafc; }
+  .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stack > * + * { margin-top: 12px; }
+  .alert {
+    font-size: 11px; color: #92400e; background: #fffbeb; border: 1px solid #fde68a;
+    border-radius: 8px; padding: 8px 10px;
+  }
+  .info {
+    font-size: 12px; color: #1e3a8a; background: var(--brand-50); border: 1px solid #c7d7fe;
+    border-radius: 8px; padding: 10px 12px; line-height: 1.55;
+  }
+  .info .h { font-weight: 700; margin-bottom: 4px; color: #1e40af; font-size: 12px; }
+  .btn {
+    border: 1px solid var(--border-strong); background: #f1f5f9; color: #334155;
+    padding: 8px 12px; border-radius: 9px; font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+  }
+  .btn:hover { background: #e2e8f0; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn-primary { background: var(--brand-600); color: white; border-color: var(--brand-700); }
+  .btn-primary:hover { background: var(--brand-700); }
+
+  /* ── TABS ─────────────────────────────────────────────────── */
+  .tab-bar {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    background: #f1f5f9; padding: 4px; border-radius: 11px;
+    margin-bottom: 16px;
+  }
+  .tab {
+    flex: 1 1 auto; min-width: 70px;
+    padding: 9px 12px; background: transparent; border: none; border-radius: 8px;
+    font-size: 12.5px; font-weight: 600; color: var(--muted); cursor: pointer; font-family: inherit;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active { background: white; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+  .tab.summary-tab { color: var(--brand-700); }
+  .tab.summary-tab.active { background: var(--brand-50); color: var(--brand-800); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .split { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 20px; align-items: start; }
+  @media (max-width: 980px) { .split { grid-template-columns: 1fr; } }
+
+  /* ── SUB-TABS ─────────────────────────────────────────────── */
+  .sub-tab-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+    margin-bottom: 16px; overflow: hidden;
+  }
+  .sub-tab-bar {
+    display: flex; gap: 0; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    background: #fafbfc;
+    padding: 0 8px;
+  }
+  .sub-tab {
+    background: transparent; border: none;
+    padding: 11px 14px; cursor: pointer; font-family: inherit;
+    font-size: 12.5px; font-weight: 600; color: var(--muted);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .sub-tab:hover { color: var(--ink); }
+  .sub-tab.active { color: var(--brand-700); border-bottom-color: var(--brand-600); background: white; }
+  .sub-tab-body { padding: 18px 20px; }
+  .sub-tab-panel { display: none; }
+  .sub-tab-panel.active { display: block; }
+  .sub-tab-panel .panel-hint { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+
+  /* ── TABLES ──────────────────────────────────────────────── */
+  table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.data th {
+    text-align: left; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.06em; font-size: 11px;
+    padding: 8px 10px; border-bottom: 1px solid var(--border); background: #fafbfc;
+  }
+  table.data td { padding: 9px 10px; border-bottom: 1px solid #eef1f5; font-variant-numeric: tabular-nums; }
+  table.data tr:last-child td { border-bottom: none; }
+  table.data td.right, table.data th.right { text-align: right; }
+  table.data tr.current td { background: var(--warn-bg); }
+  table.data tr.current td:first-child { box-shadow: inset 3px 0 0 #f59e0b; }
+  table.data tr.hl td { background: var(--brand-50); }
+  table.data tr.hl td:first-child { box-shadow: inset 3px 0 0 var(--brand-600); }
+  table.data td.bear { color: var(--bear); }
+  table.data td.bull { color: var(--bull); }
+  table.data td.base { font-weight: 600; }
+  table.data td.cell-hl { background: var(--hl-bg); font-weight: 700; box-shadow: inset 0 0 0 1px var(--hl-bd); }
+  table.compact th, table.compact td { padding: 6px 8px; font-size: 12px; }
+
+  .scrollable { max-height: 460px; overflow-y: auto; border: 1px solid var(--border); border-radius: 10px; background: white; }
+  .scrollable table { width: 100%; }
+  .scrollable thead th { position: sticky; top: 0; z-index: 1; }
+
+  /* ── HEADLINE ────────────────────────────────────────────── */
+  .headline { background: linear-gradient(135deg, #ffffff, var(--brand-50)); }
+  .headline .row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .headline .big { font-size: 40px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-top: 4px; }
+  .headline .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .headline .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: right; }
+  .headline .stats .val { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* ── DEAL BAND ───────────────────────────────────────────── */
+  .deal-band { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; }
+  .deal-band .small { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .deal-band .line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; }
+  .deal-band .amt { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .band-text { font-weight: 600; font-size: 13px; }
+  .band-bear { color: var(--bear); }
+  .band-mid  { color: #b45309; }
+  .band-bull { color: var(--bull); }
+
+  .chart-wrap { position: relative; width: 100%; height: 320px; max-height: 320px; overflow: hidden; }
+  .chart-wrap canvas { display: block; width: 100% !important; height: 100% !important; }
+  .chart-wrap.small { height: 220px; max-height: 220px; }
+  .methodology p { color: #334155; font-size: 13px; line-height: 1.6; margin: 0 0 8px 0; }
+  .methodology .small { color: var(--muted); font-size: 12px; line-height: 1.55; }
+
+  /* ── EPI CASCADE ─────────────────────────────────────────── */
+  .cascade-step {
+    display: grid; grid-template-columns: 1fr auto; gap: 8px;
+    align-items: center; padding: 6px 0;
+    border-bottom: 1px dashed #e5e7eb;
+  }
+  .cascade-step:last-child { border-bottom: none; }
+  .cascade-step .nm { font-size: 12px; color: var(--ink); font-weight: 500; }
+  .cascade-step .nm .sub { display: block; font-size: 11px; color: var(--muted); font-weight: 400; margin-top: 1px; }
+  .cascade-step .num-out { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 13px; text-align: right; min-width: 100px; }
+  .cascade-final {
+    margin-top: 10px; padding: 10px 12px;
+    background: var(--brand-50); border: 1px solid #c7d7fe; border-radius: 9px;
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .cascade-final .lbl { font-size: 12px; color: #1e40af; font-weight: 600; }
+  .cascade-final .val { font-size: 18px; font-weight: 800; color: #1e40af; font-variant-numeric: tabular-nums; }
+
+  /* ── FLAGS LIST ──────────────────────────────────────────── */
+  .flag-group { margin-bottom: 14px; }
+  .flag-group-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+  .flag-row {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center;
+    padding: 8px 10px; border-radius: 8px; cursor: pointer;
+    user-select: none;
+  }
+  .flag-row:hover { background: #f8fafc; }
+  .flag-row.active { background: #ecfdf5; }
+  .flag-row.disabled { opacity: 0.4; pointer-events: none; }
+  .flag-toggle {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border-strong);
+    border-radius: 5px;
+    background: white;
+    position: relative;
+    flex-shrink: 0;
+    transition: background 0.1s, border-color 0.1s;
+  }
+  .flag-row.active .flag-toggle {
+    background: var(--brand-600);
+    border-color: var(--brand-600);
+  }
+  .flag-row.active .flag-toggle::after {
+    content: '';
+    position: absolute;
+    left: 5px; top: 1px;
+    width: 5px; height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .flag-row:focus { outline: 2px solid var(--brand-600); outline-offset: 1px; }
+  .flag-meta { display: flex; flex-direction: column; gap: 1px; }
+  .flag-name { font-size: 13px; font-weight: 500; color: var(--ink); cursor: pointer; }
+  .flag-effects { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .flag-magnitude { display: flex; align-items: center; gap: 6px; min-width: 120px; }
+  .flag-magnitude input[type="range"] { width: 80px; accent-color: var(--brand-600); }
+  .flag-magnitude .val { font-size: 11px; font-weight: 600; min-width: 32px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* ── BREADCRUMBS ─────────────────────────────────────────── */
+  .breadcrumb-row {
+    display: grid; grid-template-columns: 120px 1fr 60px;
+    gap: 6px; padding: 4px 0; align-items: baseline;
+    border-bottom: 1px dashed #eef1f5; font-size: 12px;
+  }
+  .breadcrumb-row.final { font-weight: 700; color: var(--ink); border-bottom: 2px solid var(--brand-600); padding-top: 6px; padding-bottom: 6px; margin-top: 4px; }
+  .breadcrumb-row .lbl { color: var(--muted); }
+  .breadcrumb-row .desc { color: var(--ink); }
+  .breadcrumb-row .delta { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .breadcrumb-row .delta.add { color: var(--bull); }
+  .breadcrumb-row .delta.sub { color: var(--bear); }
+
+  .phase-breakdown { padding: 12px; background: #f8fafc; border: 1px solid var(--border); border-radius: 9px; margin-bottom: 12px; }
+  .phase-breakdown h4 { font-size: 12px; font-weight: 700; margin: 0 0 8px 0; color: var(--ink); }
+
+  /* ── TIMELINE ─────────────────────────────────────────────── */
+  .timeline { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+  .timeline .step {
+    background: #f8fafc; border: 1px solid var(--border); border-radius: 9px;
+    padding: 10px 8px; text-align: center;
+  }
+  .timeline .step.current { background: var(--warn-bg); border-color: var(--warn-bd); }
+  .timeline .step .nm { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  .timeline .step.current .nm { color: var(--warn-fg); }
+  .timeline .step .yrs { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .timeline .step .cost { font-size: 11px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+  .range-bar { position: relative; height: 36px; background: linear-gradient(90deg, #fde2e2, #fef3c7, #d1fae5); border-radius: 8px; margin: 36px 0 4px; }
+  .range-bar .pin {
+    position: absolute; top: -4px; bottom: -4px;
+    width: 4px; background: var(--brand-700); border-radius: 4px;
+    box-shadow: 0 0 0 2px white;
+  }
+  .range-bar .label-left, .range-bar .label-right {
+    position: absolute; top: 100%; margin-top: 6px; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums;
+  }
+  .range-bar .label-left { left: 0; }
+  .range-bar .label-right { right: 0; }
+  .range-bar .label-cur {
+    position: absolute; top: -26px; transform: translateX(-50%);
+    font-size: 11px; font-weight: 700; color: var(--brand-700); white-space: nowrap;
+    padding: 2px 6px; background: white; border: 1px solid var(--brand-600); border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.06);
+  }
+  .range-bar .label-cur.at-left  { transform: translateX(0); left: 0 !important; }
+  .range-bar .label-cur.at-right { transform: translateX(-100%); }
+
+  footer.app { text-align: center; padding: 20px 0 40px; font-size: 12px; color: var(--muted); }
+
+  /* ── ACTIVE PRESET BANNER ─────────────────────────────────── */
+  .preset-banner {
+    background: linear-gradient(135deg, var(--brand-50), #f0f5ff);
+    border: 1px solid #c7d7fe;
+    border-radius: 11px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .preset-banner-icon { font-size: 16px; flex-shrink: 0; }
+  .preset-banner-body { flex: 1; min-width: 0; }
+  .preset-banner-name { font-weight: 700; font-size: 13px; color: var(--brand-800); margin-bottom: 3px; }
+  .preset-banner-detail { font-size: 12px; color: #334155; line-height: 1.45; }
+  .preset-banner-stat { display: inline-block; padding: 1px 7px; background: white; border: 1px solid #c7d7fe; border-radius: 999px; font-size: 11px; font-weight: 600; color: var(--brand-700); margin-right: 4px; font-variant-numeric: tabular-nums; }
+  .preset-banner-detach { background: transparent; border: none; cursor: pointer; font-size: 18px; color: var(--muted); padding: 4px 8px; line-height: 1; flex-shrink: 0; font-family: inherit; border-radius: 5px; }
+  .preset-banner-detach:hover { background: rgba(0,0,0,0.05); color: var(--bear); }
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div class="row">
+    <a class="logo" href="index.html">
+      <div class="logo-mark">BV</div>
+      <div class="logo-text">
+        <div class="name">BioValue</div>
+        <div class="sub">Drug asset risk adjusted valuation tool</div>
+      </div>
+    </a>
+    <div class="nav">
+      <a href="about.html">About</a>
+      <a href="index.html" class="current">Tool</a>
+      <a href="tutorial.html">Tutorial</a>
+      <a href="market_report.html">Report</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="tab-bar" role="tablist">
+    <button class="tab active" data-tab="asset">Asset</button>
+    <button class="tab" data-tab="market">Disease &amp; Market</button>
+    <button class="tab" data-tab="development">Development</button>
+    <button class="tab" data-tab="commercial">Commercial</button>
+    <button class="tab" data-tab="capital">Capital</button>
+    <button class="tab summary-tab" data-tab="summary">Summary</button>
+    <button class="tab summary-tab" data-tab="dealtarget">Deal Analysis →</button>
+  </div>
+
+  <div id="preset-banner" class="preset-banner" style="display:none;" aria-live="polite">
+    <div class="preset-banner-icon">📋</div>
+    <div class="preset-banner-body">
+      <div class="preset-banner-name"><span data-show="pb-name">—</span></div>
+      <div class="preset-banner-detail" data-show="pb-detail">—</div>
+    </div>
+    <button class="preset-banner-detach" id="btn-pb-detach" title="Detach preset (keep inputs)" aria-label="Detach preset">×</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       ASSET TAB
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="tab-panel active" data-tab-panel="asset">
+    <div class="split">
+      <div>
+        <div class="sub-tab-card" data-sub-tab-group="asset-left">
+          <div class="sub-tab-bar">
+            <button class="sub-tab active" data-sub-tab="asset-left-identity">Identity</button>
+            <button class="sub-tab" data-sub-tab="asset-left-flags">Differentiators</button>
+          </div>
+          <div class="sub-tab-body">
+            <div class="sub-tab-panel active" data-sub-tab-panel="asset-left-identity">
+              <div class="panel-hint">Indication, TA, modality, and mechanism. Differentiators (designations, trial design, mechanism positioning, administration advantage) live on the next sub-tab.</div>
+              <div class="stack">
+                <div class="field">
+                  <div class="label-row"><div class="label">Asset name</div></div>
+                  <input type="text" data-key="assetName" />
+                </div>
+                <div class="cols2">
+                  <div class="field">
+                    <div class="label-row"><div class="label">Therapeutic area</div></div>
+                    <select data-key="ta" id="ta-select"></select>
+                  </div>
+                  <div class="field">
+                    <div class="label-row"><div class="label">Indication</div></div>
+                    <input type="text" data-key="indication" placeholder="e.g. NSCLC (ROS1+)" />
+                  </div>
+                </div>
+                <div class="cols2">
+                  <div class="field">
+                    <div class="label-row"><div class="label">Modality</div></div>
+                    <select data-key="modality" id="modality-select"></select>
+                  </div>
+                  <div class="field">
+                    <div class="label-row"><div class="label">Mechanism of action</div><div class="hint">free text</div></div>
+                    <input type="text" data-key="mechanism" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="sub-tab-panel" data-sub-tab-panel="asset-left-flags">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px;">
+                <div class="panel-hint" style="margin-bottom:0;flex:1;">Each flag carries a magnitude (0–1.5×) of its published effect. Click anywhere on a row to toggle. Mutually-exclusive groups auto-uncheck siblings.</div>
+                <button class="btn" id="btn-clear-flags">Clear all</button>
+              </div>
+              <div id="flag-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 0;">
+          <div class="hdr"><div><div class="title">Load a prior deal</div><div class="hint">Pre-populates identity, epi, stage, flags, deal terms from validation set.</div></div></div>
+          <div class="field">
+            <select id="preset-select"></select>
+          </div>
+          <div class="hint" style="font-size: 11px; color: var(--muted); margin-top: 8px;">
+            Each preset uses the data-aware stage classification (next risk ahead of acquirer) and analyst-consensus peak forecasts.
+          </div>
+          <div class="btn-row" style="margin-top: 10px;">
+            <button class="btn" id="btn-reset">Reset to blank</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sub-tab-card" data-sub-tab-group="asset">
+          <div class="sub-tab-bar">
+            <button class="sub-tab active" data-sub-tab="asset-active-effects">Active flag effects</button>
+            <button class="sub-tab" data-sub-tab="asset-ta">TA reference</button>
+            <button class="sub-tab" data-sub-tab="asset-modality">Modality premia</button>
+          </div>
+          <div class="sub-tab-body">
+            <div class="sub-tab-panel active" data-sub-tab-panel="asset-active-effects">
+              <div class="panel-hint">Aggregated effects of differentiator flags, ready to apply to Development, Market, and Commercial.</div>
+              <div id="active-effects-summary">—</div>
+            </div>
+            <div class="sub-tab-panel" data-sub-tab-panel="asset-ta">
+              <div class="panel-hint">Therapeutic Area (TA)-level PoS · selected TA highlighted · biomarker-stratified columns as defined in MIT Project ALPHA / Wong-Siah-Lo 2019.</div>
+              <div class="scrollable">
+                <table class="data compact">
+                  <thead><tr>
+                    <th rowspan="2">TA</th>
+                    <th colspan="4" class="right" style="border-bottom:1px solid var(--border);">Unselected</th>
+                    <th colspan="4" class="right" style="border-bottom:1px solid var(--border);">Biomarker-selected</th>
+                  </tr><tr>
+                    <th class="right">Ph I→II</th><th class="right">II→III</th><th class="right">III→NDA</th><th class="right">NDA→Apr</th>
+                    <th colspan="4" class="right" style="font-style: italic; font-weight: 500;">Same phases</th>
+                  </tr></thead>
+                  <tbody id="ta-table-body"></tbody>
+                </table>
+              </div>
+              <div class="hint" style="margin-top:8px;font-size:11px;color:var(--muted);">
+                Source: MIT Project ALPHA database (projectalpha.mit.edu/pos) — Main &amp; Biomarker tables, snapshot 2025-12-28. ALPHA reports a combined P(III→Approval); BioValue splits it into P(III→NDA) × P(NDA→Approval) using a fixed 0.91 NDA→Approval rate. <span class="pill pill-est">est.</span> = either Bio-arm sample size &lt; 30 paths (low statistical confidence) or TA not in ALPHA's 15-category taxonomy.
+              </div>
+            </div>
+            <div class="sub-tab-panel" data-sub-tab-panel="asset-modality">
+              <div class="panel-hint">Modality premia — selected modality highlighted.</div>
+              <table class="data compact" id="modality-table">
+                <thead><tr><th>Modality</th><th>Premium driver / commentary</th></tr></thead>
+                <tbody id="modality-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       DISEASE & MARKET TAB
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="tab-panel" data-tab-panel="market">
+    <div class="split">
+      <div>
+        <div class="card">
+          <div class="hdr"><div><div class="title">Indication library</div><div class="hint">Search for a common indication to auto-populate the epi cascade below.</div></div></div>
+          <div class="field">
+            <input type="text" list="indication-options" id="indication-search" placeholder="Type to search… e.g. Type 2 Diabetes, MASH, NSCLC, ADPKD" />
+            <datalist id="indication-options"></datalist>
+          </div>
+          <div id="indication-loaded" style="display:none; margin-top: 10px;" class="info">
+            <div class="h" data-show="ind-loaded-name">—</div>
+            <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Source: <span data-show="ind-loaded-source">—</span></div>
+          </div>
+          <div class="hint" style="font-size: 11px; color: var(--muted); margin-top: 8px;">
+            Pre-populated with ~40 common indications. Selecting one updates prevalence, chronic/treated/addressable %, WAC price, GTN, and TA. Each indication carries a data source citation (shown after selection). You can still edit each value manually after.
+          </div>
+          <details style="margin-top: 8px;">
+            <summary style="cursor: pointer; font-size: 12px; font-weight: 600; color: var(--brand-700); padding: 4px 0;">▸ Methodology &amp; source set</summary>
+            <div style="font-size: 11px; color: #334155; line-height: 1.5; margin-top: 6px;">
+              The library aggregates US epidemiology from authoritative public sources, with one citation per indication. Source mix: <strong>CDC</strong> (NHANES, BRFSS, IBD/CKD/arthritis/asthma/SCD surveillance, National Diabetes Statistics Report) for chronic disease prevalence; <strong>SEER</strong> for cancer annual incidence; <strong>AHA Heart Disease &amp; Stroke Statistics</strong> for cardiovascular; <strong>NIMH</strong> for psychiatric prevalence; disease-society foundations (<strong>Alzheimer's Association, Parkinson's Foundation, National MS Society, NPF, Lupus Foundation, PKD Foundation</strong>) for specific conditions; <strong>peer-reviewed</strong> literature (Younossi, Marras, Saha, Raghu, Lichtenstein, Friedman, Nordestgaard, Rachakonda) for prevalence and stratification; <strong>DelveInsight</strong> for select branded market reports (refractory gout, MASH). Pricing reflects approved-drug WAC benchmarks in the indication class. For decision-grade analysis, refine each value with the disease-specific epi report.
+            </div>
+          </details>
+        </div>
+
+        <div class="card">
+          <div class="hdr"><div><div class="title">Epidemiology &amp; pricing</div><div class="hint">Bottom-up addressable revenue pool. Glossary at bottom of card.</div></div></div>
+          <div class="cols2">
+            <div class="field">
+              <div class="label-row"><div class="label">US population</div></div>
+              <input type="number" data-epi-key="population" step="1000000" />
+            </div>
+            <div class="field">
+              <div class="label-row"><div class="label">Prevalence</div><div class="hint">% of population</div></div>
+              <div class="suffix-wrap"><input type="number" data-epi-key="prevalence" step="0.1" min="0" max="100" /><div class="suffix">%</div></div>
+            </div>
+            <div class="field">
+              <div class="label-row"><div class="label">Chronic</div><div class="hint">% of prevalent</div></div>
+              <div class="suffix-wrap"><input type="number" data-epi-key="pctChronic" step="0.5" min="0" max="100" /><div class="suffix">%</div></div>
+            </div>
+            <div class="field">
+              <div class="label-row"><div class="label">Treated</div><div class="hint">% of chronic</div></div>
+              <div class="suffix-wrap"><input type="number" data-epi-key="pctTreated" step="0.5" min="0" max="100" /><div class="suffix">%</div></div>
+            </div>
+            <div class="field">
+              <div class="label-row"><div class="label">Addressable</div><div class="hint">% of treated</div></div>
+              <div class="suffix-wrap"><input type="number" data-epi-key="pctAddressable" step="0.5" min="0" max="100" /><div class="suffix">%</div></div>
+            </div>
+            <div class="field">
+              <div class="label-row"><div class="label">WAC price</div><div class="hint">$/patient/yr</div></div>
+              <div class="suffix-wrap"><input type="number" data-epi-key="wacPrice" step="500" min="0" /><div class="suffix">USD</div></div>
+            </div>
+            <div class="field">
+              <div class="label-row"><div class="label">GTN discount</div><div class="hint">rebates &amp; net</div></div>
+              <div class="range-row">
+                <input type="range" data-key="gtn" min="0" max="70" step="1" />
+                <div class="range-val"><span data-show="gtn"></span>%</div>
+              </div>
+            </div>
+            <div class="field">
+              <div class="label-row"><div class="label">WW / US mult.</div><div class="hint">WW ÷ US</div></div>
+              <div class="suffix-wrap"><input type="number" data-key="wwMult" step="0.1" min="1" max="3" /><div class="suffix">×</div></div>
+            </div>
+          </div>
+          <details style="margin-top: 14px;">
+            <summary style="cursor: pointer; font-size: 12px; font-weight: 600; color: var(--brand-700); padding: 6px 0;">▸ Glossary — what each field means</summary>
+            <div class="info" style="margin-top: 8px;">
+              <div style="font-size: 12px; line-height: 1.6; color: #334155;">
+                <strong>Prevalence rate:</strong> share of the US population with the condition at any given time. For chronic diseases this is what accumulates; for acute conditions, use annual incidence.<br><br>
+                <strong>Chronic / refractory:</strong> the share of prevalent patients with persistent/long-term disease (vs. transient or resolved). Set 100% if all patients are chronic; set lower (e.g. 13% for refractory gout) when only a subset of the prevalent pool is the addressable disease state.<br><br>
+                <strong>Diagnosed &amp; treated:</strong> the share of chronic patients who have received a diagnosis and are actively in treatment. Many conditions (obesity, MASH, mild depression) are massively under-diagnosed and under-treated — this is the bottleneck.<br><br>
+                <strong>Addressable:</strong> the share of treated patients this specific drug can reach, given its label, mechanism, and competitive position. For an oral URAT1 inhibitor that competes with IV pegloticase + dotinurad: ~25% of treated refractory gout. For a best-in-class GLP-1 in obesity: ~70%.<br><br>
+                <strong>WAC price (gross):</strong> US Wholesale Acquisition Cost — the manufacturer's published list price per patient per year. This is the headline price before any discounts.<br><br>
+                <strong>GTN (Gross-to-Net) discount:</strong> the discount from WAC to net realized revenue after all rebates: payer/PBM rebates, 340B discounts, Medicaid rebates, patient assistance programs, and prompt-pay discounts. Typical ranges: specialty oncology 20–30%; immunology biologics 40–55%; primary care chronic drugs 50–70%; orphan with concentrated payers 10–20%. Net price = WAC × (1 − GTN%).<br><br>
+                <strong>WW / US multiplier:</strong> total worldwide net revenue as a multiple of US net revenue. Industry standard is 1.5× for typical specialty (i.e., US is ~67% of WW); orphan drugs trend higher (1.6–2.0×) because international pricing concentrates in Europe/Japan; primary care can be lower (1.3–1.5×).
+              </div>
+            </div>
+          </details>
+        </div>
+
+      </div>
+
+      <div>
+        <div class="sub-tab-card" data-sub-tab-group="market">
+          <div class="sub-tab-bar">
+            <button class="sub-tab active" data-sub-tab="market-cascade">Cascade &amp; pricing</button>
+            <button class="sub-tab" data-sub-tab="market-position">Where peak sits</button>
+            <button class="sub-tab" data-sub-tab="market-ranges">TA rNPV ranges</button>
+          </div>
+          <div class="sub-tab-body">
+            <div class="sub-tab-panel active" data-sub-tab-panel="market-cascade">
+              <div class="panel-hint">Patient funnel and net-price walk, with active differentiation premia applied to price.</div>
+              <div id="cascade-list"></div>
+              <div class="cascade-final"><div class="lbl">Addressable revenue pool at 100% share (WW net)</div><div class="val" id="cascade-final">—</div></div>
+              <div id="price-breakdown" style="margin-top: 14px;"></div>
+            </div>
+            <div class="sub-tab-panel" data-sub-tab-panel="market-position">
+              <div class="panel-hint">Your model Base rNPV at the current stage vs. published TA range.</div>
+              <div id="peak-position">—</div>
+            </div>
+            <div class="sub-tab-panel" data-sub-tab-panel="market-ranges">
+              <div class="panel-hint">Published rNPV ranges from the 2024–2026 market report. Your TA highlighted.</div>
+              <table class="data compact">
+                <thead><tr><th>TA</th><th class="right">Ph II rNPV</th><th class="right">Ph III rNPV</th></tr></thead>
+                <tbody id="ta-rnpv-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       DEVELOPMENT TAB
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="tab-panel" data-tab-panel="development">
+    <div class="split">
+      <div>
+        <div class="card">
+          <div class="hdr"><div><div class="title">Current stage</div></div></div>
+          <div class="field"><select data-key="currentStage" id="stage-select"></select></div>
+        </div>
+
+        <div class="card">
+          <div class="hdr">
+            <div><div class="title">Phase durations &amp; R&amp;D costs</div><div class="hint">Industry medians by default; edit for asset-specific plans.</div></div>
+            <button class="btn" id="btn-reset-phases">Reset</button>
+          </div>
+          <table class="data compact">
+            <thead><tr><th>Phase</th><th class="right">Duration (yrs)</th><th class="right">Cost ($M)</th></tr></thead>
+            <tbody id="phase-table-body"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="hdr">
+            <div><div class="title">PoS overrides</div><div class="hint">Manual override of the computed effective PoS per transition. Leave default to use flag-driven values.</div></div>
+            <button class="btn" id="btn-reset-pos">Reset overrides</button>
+          </div>
+          <table class="data compact">
+            <thead><tr><th>Transition</th><th class="right">Effective</th><th>Override</th></tr></thead>
+            <tbody id="pos-override-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <div class="sub-tab-card" data-sub-tab-group="development">
+          <div class="sub-tab-bar">
+            <button class="sub-tab active" data-sub-tab="dev-breakdown">PoS breakdown</button>
+            <button class="sub-tab" data-sub-tab="dev-timeline">Timeline</button>
+            <button class="sub-tab" data-sub-tab="dev-loa">Cum. LoA</button>
+          </div>
+          <div class="sub-tab-body">
+            <div class="sub-tab-panel active" data-sub-tab-panel="dev-breakdown">
+              <div class="panel-hint">For each phase transition: base PoS → biomarker swap → marginal uplifts → cap → effective.</div>
+              <div id="pos-breakdown-list"></div>
+            </div>
+            <div class="sub-tab-panel" data-sub-tab-panel="dev-timeline">
+              <div class="panel-hint">Current durations and costs · current stage highlighted.</div>
+              <div class="timeline" id="timeline"></div>
+            </div>
+            <div class="sub-tab-panel" data-sub-tab-panel="dev-loa">
+              <div class="panel-hint">Cumulative likelihood &amp; time-to-launch from each stage, using your effective PoS.</div>
+              <table class="data compact" id="loa-table">
+                <thead><tr><th>From stage</th><th class="right">Cum. LoA</th><th class="right">Yrs to launch</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       COMMERCIAL TAB
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="tab-panel" data-tab-panel="commercial">
+    <div class="split">
+      <div>
+        <div class="card">
+          <div class="hdr"><div><div class="title">Commercial profile</div><div class="hint">Pick the competitive tier — it sets a baseline peak share you can override.</div></div></div>
+
+          <!-- Competition picker: drives baseline share -->
+          <div class="field">
+            <div class="label-row"><div class="label">Competition</div><div class="hint">approved drugs &amp; late-stage rivals</div></div>
+            <select data-key="competition" id="competition-select"></select>
+          </div>
+
+          <!-- Peak market share override -->
+          <div class="field" style="margin-top: 16px; margin-bottom: 20px;">
+            <div class="label-row"><div class="label">Peak market share</div><div class="hint">%</div></div>
+            <div class="range-row">
+              <input type="range" data-key="peakSharePct" min="1" max="100" step="1" />
+              <div class="range-val"><span data-show="peakSharePct"></span>%</div>
+            </div>
+          </div>
+
+          <div class="cols2">
+            <div class="field">
+              <div class="label-row"><div class="label">Ramp to peak</div><div class="hint">years</div></div>
+              <div class="suffix-wrap"><input type="number" data-key="rampYears" step="1" min="1" max="10" /><div class="suffix">yrs</div></div>
+            </div>
+            <div class="field">
+              <div class="label-row"><div class="label">Commercial life</div><div class="hint">years to LoE</div></div>
+              <div class="suffix-wrap"><input type="number" data-key="commercialLifeBase" step="1" min="5" max="20" /><div class="suffix">yrs</div></div>
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <div class="label-row"><div class="label">Patent cliff (LoE erosion)</div><div class="hint">% revenue cut applied in the final 2 years</div></div>
+              <div class="range-row">
+                <input type="range" data-key="loeHaircutPct" min="0" max="90" step="5" />
+                <div class="range-val"><span data-show="loeHaircutPct"></span>%</div>
+              </div>
+            </div>
+          </div>
+          <div id="life-breadcrumb" style="margin-top: 10px;"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sub-tab-card" data-sub-tab-group="commercial">
+          <div class="sub-tab-bar">
+            <button class="sub-tab active" data-sub-tab="commercial-ramp">Ramp curves</button>
+            <button class="sub-tab" data-sub-tab="commercial-loe">LoE benchmarks</button>
+          </div>
+          <div class="sub-tab-body">
+            <div class="sub-tab-panel active" data-sub-tab-panel="commercial-ramp">
+              <div class="panel-hint">Industry archetypes vs. your ramp.</div>
+              <div class="chart-wrap small" style="position:relative;width:100%;height:220px;max-height:220px;overflow:hidden;">
+                <canvas id="ramp-chart" width="600" height="220"></canvas>
+              </div>
+              <table class="data compact" style="margin-top: 10px;">
+                <thead><tr><th>Archetype</th><th>Ramp to peak</th><th>Examples</th></tr></thead>
+                <tbody id="ramp-archetype-body">
+                  <tr data-ramp="3"><td>Specialty / orphan</td><td>3 yrs</td><td>Rare disease, oncology</td></tr>
+                  <tr data-ramp="5"><td>Standard launch</td><td>5 yrs</td><td>Immunology, CV</td></tr>
+                  <tr data-ramp="7"><td>Primary care chronic</td><td>7 yrs</td><td>Diabetes, hypertension</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="sub-tab-panel" data-sub-tab-panel="commercial-loe">
+              <div class="panel-hint">Loss-of-exclusivity decay and category notes.</div>
+              <div class="info"><div class="h">Loss of exclusivity</div>Small molecules: composition-of-matter expiry ~12y post-launch, 60–80% sales drop in first 12 months. Biologics: biosimilar erosion 30–50% over 3 years. IRA Medicare clock: 9y (SM) / 13y (BL).</div>
+              <div class="info" style="margin-top:10px;"><div class="h">Exclusivity boosts</div>Orphan: +2y. Pediatric exclusivity: +0.5y. RPD voucher: +0.5y. IRA Medicare retail exposure: −1y. Aggregate capped at +5y over your base.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       CAPITAL TAB
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="tab-panel" data-tab-panel="capital">
+    <div class="split">
+      <div>
+        <div class="card">
+          <div class="hdr"><div><div class="title">Cost of capital</div><div class="hint">Acquirer's WACC used to discount the asset's expected cash flows.</div></div></div>
+          <div class="cols2">
+            <div class="field">
+              <div class="label-row"><div class="label">WACC</div></div>
+              <div class="range-row">
+                <input type="range" data-key="wacc" min="5" max="20" step="0.5" />
+                <div class="range-val"><span data-show="wacc"></span>%</div>
+              </div>
+            </div>
+            <div class="field">
+              <div class="label-row"><div class="label">Royalty</div><div class="hint">% net sales if licensed</div></div>
+              <div class="range-row">
+                <input type="range" data-key="royalty" min="0" max="30" step="0.5" />
+                <div class="range-val"><span data-show="royalty"></span>%</div>
+              </div>
+            </div>
+          </div>
+          <div class="info" style="margin-top: 12px; font-size: 11px;">
+            <div class="h">Whose cost of capital?</div>
+            This is the <strong>acquirer's</strong> WACC — the rate they use to discount the asset's expected cash flows. Typical bands: <strong>large pharma 8–10%</strong>, <strong>mid-cap specialty 10–12%</strong>, <strong>small-cap / focused biotech 12–14%</strong>. The acquirer's higher BD-realistic hurdle (14%) is applied in the <em>Deal Analysis</em> tab's Commercial-adjusted lower bound, alongside peak-realization and commercial-PoS haircuts.
+          </div>
+          <div class="info" style="margin-top: 8px; font-size: 11px;">
+            <div class="h">Royalty (% net sales if licensed)</div>
+            Royalty is the rate the <strong>acquirer pays the licensor</strong> (acquiree / developer) as ongoing % of net sales in licensing-style deals. Set to 0% for full acquisitions (acquirer owns all revenue). For licensing deals (e.g. AbbVie/IGI ISB 2001 "tiered double-digit"), set to the agreed rate.<br><br>
+            <strong>Asset rNPV is not affected by royalty</strong> — it always represents full standalone value. The royalty stream PV is added as a separate component to <em>Deal PV</em> on the Deal Analysis tab, representing the licensor's continuing economic interest.
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sub-tab-card" data-sub-tab-group="capital">
+          <div class="sub-tab-bar">
+            <button class="sub-tab active" data-sub-tab="capital-wacc">WACC bands</button>
+            <button class="sub-tab" data-sub-tab="capital-royalty">Royalty matrix</button>
+          </div>
+          <div class="sub-tab-body">
+            <div class="sub-tab-panel active" data-sub-tab-panel="capital-wacc">
+              <div class="panel-hint">Highlighted = matches your selection.</div>
+              <table class="data compact" id="wacc-table">
+                <thead><tr><th>Profile</th><th class="right">WACC</th><th>When to use</th></tr></thead>
+                <tbody>
+                  <tr data-wacc-range="8-9"><td>Approaching approval</td><td class="right">8–9%</td><td>NDA / late Ph III, validated indication</td></tr>
+                  <tr data-wacc-range="10-10"><td>Late stage validated</td><td class="right">10%</td><td>Ph III precedented mechanism</td></tr>
+                  <tr data-wacc-range="11-12"><td>Phase II / first-in-indication</td><td class="right">11–12%</td><td>POC achieved, commercial uncertain</td></tr>
+                  <tr data-wacc-range="13-15"><td>Early-stage / high-risk</td><td class="right">13–15%</td><td>Ph I, CNS, CGT, cap-constrained</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="sub-tab-panel" data-sub-tab-panel="capital-royalty">
+              <div class="panel-hint">Net-sales royalty by TA × stage · highlighted = your TA × stage.</div>
+              <table class="data compact" id="royalty-matrix">
+                <thead><tr><th>TA</th><th class="right">Ph I</th><th class="right">Ph II</th><th class="right">Ph III</th><th class="right">Post-Apr</th></tr></thead>
+                <tbody id="royalty-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SUMMARY TAB
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="tab-panel" data-tab-panel="summary">
+
+    <div class="card headline">
+      <div class="row">
+        <div>
+          <div class="label">Asset rNPV (Base scenario, current stage)</div>
+          <div class="big num" data-show="headline-rnpv">—</div>
+          <div class="sub" data-show="headline-sub">—</div>
+        </div>
+        <div class="stats">
+          <div><div class="label">Cum. LoA</div><div class="val num" data-show="headline-loa">—</div></div>
+          <div><div class="label">Yrs to launch</div><div class="val num" data-show="headline-yr">—</div></div>
+          <div><div class="label">R&amp;D PV</div><div class="val num" data-show="headline-rd">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="split">
+      <div>
+        <div class="card">
+          <div class="hdr">
+            <div><div class="title">rNPV at each milestone</div><div class="hint">Bear · Base · Bull peak sales scenarios.</div></div>
+            <div style="display:flex;gap:6px;">
+              <span class="pill pill-bear">Bear 0.7×</span>
+              <span class="pill pill-base">Base 1.0×</span>
+              <span class="pill pill-bull">Bull 1.3×</span>
+            </div>
+          </div>
+          <table class="data" id="milestone-table">
+            <thead><tr><th>Entry to stage</th><th>Cum. LoA</th><th class="right">Bear</th><th class="right">Base</th><th class="right">Bull</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="hdr"><div><div class="title">Sensitivity at <span data-show="current-stage-name">—</span></div><div class="hint">WACC × scenario</div></div></div>
+          <table class="data" id="sensitivity-table">
+            <thead><tr><th>WACC</th><th class="right">Bear 0.7×</th><th class="right">Base 1.0×</th><th class="right">Bull 1.3×</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="hdr"><div><div class="title">rNPV across milestones</div></div></div>
+          <div class="chart-wrap" style="position:relative;width:100%;height:320px;max-height:320px;overflow:hidden;">
+            <canvas id="scenario-chart" width="800" height="320"></canvas>
+          </div>
+        </div>
+
+        <div class="card methodology">
+          <div class="hdr"><div><div class="title">How this is calculated</div></div></div>
+          <p>rNPV = Σ [ <span class="mono num">CFₜ × P(reach t) / (1 + r)ᵗ</span> ]. R&amp;D costs are probability-weighted by cumulative likelihood of reaching each stage, then discounted at WACC. Commercial revenue = addressable WW peak pool × peak market share × ramp × year-by-year discount × cumulative LoA, with LoE haircut on terminal years.</p>
+          <p>PoS uses a two-pass model: baseline from <strong>MIT Project ALPHA</strong> (database snapshot 2025-12-28, biomarker-stratified by therapeutic area where ALPHA covers the indication group), then marginal uplifts from differentiation flags compound multiplicatively on failure rate. ALPHA reports P(III→Approval) combined; BioValue splits it into P(III→NDA) × P(NDA→Approval) using a fixed 0.91 NDA-to-Approval rate. Per-transition cap: 90%. Price premium from flags compounds and caps at +50%. Commercial life additions cap at +5y. R&amp;D cost penalties cap at +50%.</p>
+          <p class="small">ALPHA snapshot files: data/mit_alpha/Main_20251228.txt and Biomarker_20251228.txt. TAs outside ALPHA's 15-category taxonomy (Rare Disease, Cell &amp; Gene Therapy, Vaccines) use Wong-Siah-Lo / industry-aligned estimates flagged with the <span class="pill pill-est">est.</span> badge. Phase durations and R&amp;D costs: Sertkaya et al. (JAMA Netw Open 2024); Chandra &amp; Mazumdar (JOIM 2024). TA peak-rNPV ranges and deal comps: BioValue MARKET_REPORT.md. Royalty matrix: BioPharma Dealmakers 2024; Evaluate Pharma 2024.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       DEAL ANALYSIS TAB — Asset rNPV vs Deal PV vs Commercial-adjusted rNPV
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="tab-panel" data-tab-panel="dealtarget">
+    <div class="card headline">
+      <div class="row">
+        <div>
+          <div class="label">Valuation range — where the deal sits</div>
+          <div style="display: flex; align-items: center; gap: 30px; margin-top: 10px; flex-wrap: wrap;">
+            <div>
+              <div class="label" style="color: var(--brand-700);">Asset rNPV (upper)</div>
+              <div class="big num" style="font-size: 26px;" data-show="dt-rnpv">—</div>
+            </div>
+            <div>
+              <div class="label" style="color: var(--bear);">Commercial-adjusted (lower)</div>
+              <div class="big num" style="font-size: 26px;" data-show="dt-lower">—</div>
+            </div>
+            <div>
+              <div class="label">Deal PV</div>
+              <div class="big num" style="font-size: 26px;" data-show="dt-pv">—</div>
+            </div>
+          </div>
+          <div class="sub" style="margin-top: 10px;" data-show="dt-position-summary">—</div>
+        </div>
+        <div class="stats" style="min-width: 220px;">
+          <div><div class="label">Deal nominal</div><div class="val num" data-show="dt-nominal">—</div></div>
+          <div><div class="label">Deal/rNPV</div><div class="val num" data-show="dt-pct">—</div></div>
+          <div><div class="label">Range width</div><div class="val num" data-show="dt-range-pct">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="split">
+      <div>
+        <div class="card">
+          <div class="hdr"><div><div class="title">Deal structure</div><div class="hint">Enter the actual deal terms — model computes risk-adjusted PV using its own PoS and time-to-launch.</div></div></div>
+
+          <div class="cols2">
+            <div class="field">
+              <div class="label-row"><div class="label">Upfront cash</div><div class="hint">certain payment</div></div>
+              <div class="suffix-wrap"><input type="number" data-key="dealUpfront_M" step="25" min="0" /><div class="suffix">$M</div></div>
+            </div>
+            <div class="field">
+              <div class="label-row"><div class="label">Counterparty</div></div>
+              <input type="text" data-key="dealCounterparty" />
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <div class="label-row"><div class="label">Total milestone pool</div><div class="hint">nominal face value</div></div>
+              <div class="suffix-wrap"><input type="number" data-key="dealMilestones_M" step="50" min="0" /><div class="suffix">$M</div></div>
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <div class="label-row">
+                <div class="label">Regulatory milestone share <span class="pill pill-est">estimated</span></div>
+                <div class="hint">remainder is sales-based</div>
+              </div>
+              <div class="range-row">
+                <input type="range" data-key="dealMilestoneRegPct" min="0" max="100" step="5" />
+                <div class="range-val"><span data-show="dealMilestoneRegPct"></span>%</div>
+              </div>
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <div class="label-row">
+                <div class="label">Sales-milestone achievement probability <span class="pill pill-est">estimated</span></div>
+                <div class="hint">given approval</div>
+              </div>
+              <div class="range-row">
+                <input type="range" data-key="dealSalesProb" min="30" max="100" step="5" />
+                <div class="range-val"><span data-show="dealSalesProb"></span>%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="info" style="margin-top: 14px;">
+            <div class="h">How Deal PV is computed</div>
+            <strong>Upfront</strong> is certain. <strong>Regulatory milestones</strong> are paid on approval — risk-adjusted by the model's cumulative LoA from current stage and discounted at WACC over time-to-launch. <strong>Sales milestones</strong> are paid ~4 years post-launch on hitting a sales threshold — risk-adjusted by LoA × sales-achievement probability and discounted from that later point.
+          </div>
+          <div class="alert" style="margin-top: 10px;">
+            <strong>Note on data:</strong> Public deal announcements typically disclose the total milestone pool but not the regulatory-vs-sales split or the sales-threshold size. <strong>Regulatory milestone share</strong> is an analyst estimate where not disclosed; <strong>sales-milestone achievement probability</strong> is always analyst convention (~70% industry standard). For deals like Farabursen (100% reg CVR) or VG-3927 (commercial CVR), the split is confirmed; for most others, it's estimated.
+          </div>
+          <div class="info" style="margin-top: 10px; font-size: 11px;">
+            <strong>Royalty:</strong> set on the Capital tab. Use <strong>0%</strong> for acquisitions (acquirer owns 100% of revenue). For licensing deals, enter the agreed rate (e.g. 14% for AbbVie/IGI's "tiered double-digit" on ISB 2001). Asset rNPV is unaffected — the royalty stream PV is added separately into Deal PV above.
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sub-tab-card" data-sub-tab-group="dealtarget">
+          <div class="sub-tab-bar">
+            <button class="sub-tab active" data-sub-tab="dt-range">Range</button>
+            <button class="sub-tab" data-sub-tab="dt-waterfall">Waterfall</button>
+            <button class="sub-tab" data-sub-tab="dt-calibration">Calibration data</button>
+          </div>
+          <div class="sub-tab-body">
+            <div class="sub-tab-panel active" data-sub-tab-panel="dt-range">
+              <div class="panel-hint">Where the Deal PV sits in the [Commercial-adjusted, Asset rNPV] range.</div>
+              <div id="dt-range-visual"></div>
+              <div class="info" style="margin-top: 14px;">
+                <div class="h">How the Commercial-adjusted is computed</div>
+                Re-run the rNPV engine with three fixed adjustments: <strong>WACC = 14%</strong> (acquirer's BD hurdle), <strong>peak × 0.60</strong> (40% haircut for analyst forecast bias), <strong>launch probability × 0.85</strong> (commercial PoS post-approval).
+              </div>
+            </div>
+            <div class="sub-tab-panel" data-sub-tab-panel="dt-waterfall">
+              <div class="panel-hint">Two waterfalls: Asset rNPV → Commercial-adjusted (lower bound), and Upfront → +Reg PV → +Sales PV = Deal PV.</div>
+              <div id="dt-waterfall-list"></div>
+            </div>
+            <div class="sub-tab-panel" data-sub-tab-panel="dt-calibration">
+              <div class="panel-hint">All 7 validated single-asset deals: Asset rNPV, Commercial-adjusted rNPV (lower bound), Deal PV, and deal position in range.</div>
+              <table class="data compact" id="dt-calibration-table">
+                <thead><tr>
+                  <th>Deal</th><th>Stage</th>
+                  <th class="right">Asset rNPV</th>
+                  <th class="right">Comm-adj rNPV</th>
+                  <th class="right">Deal PV</th>
+                  <th class="right">Deal/rNPV</th>
+                </tr></thead>
+                <tbody>
+                  <tr><td>Sobi / Arthrosi (Pozdeutinurad)</td><td>Phase III</td><td class="right">$1.39B</td><td class="right">$323M</td><td class="right">$1.17B</td><td class="right">84%</td></tr>
+                  <tr><td>Novartis / Anthos (Abelacimab)</td><td>Phase III</td><td class="right">$3.62B</td><td class="right">$1.10B</td><td class="right">$1.64B</td><td class="right">45%</td></tr>
+                  <tr><td>Merck / EyeBio (Restoret)</td><td>Phase II</td><td class="right">$2.68B</td><td class="right">$803M</td><td class="right">$1.55B</td><td class="right">58%</td></tr>
+                  <tr><td>GSK / Boston (efimosfermin)</td><td>Phase III</td><td class="right">$4.92B</td><td class="right">$1.48B</td><td class="right">$1.50B</td><td class="right">30%</td></tr>
+                  <tr><td>Novartis / Regulus (farabursen)</td><td>Phase III</td><td class="right">$4.05B</td><td class="right">$1.21B</td><td class="right">$1.26B</td><td class="right">31%</td></tr>
+                  <tr><td>AbbVie / IGI (ISB 2001)</td><td>Phase II</td><td class="right">$2.20B</td><td class="right">$695M</td><td class="right">$1.20B</td><td class="right">55%</td></tr>
+                  <tr><td>Sanofi / Vigil (VG-3927)</td><td>Phase II</td><td class="right">$0.75B</td><td class="right">$235M</td><td class="right">$0.48B</td><td class="right">64%</td></tr>
+                </tbody>
+              </table>
+              <div class="hint" style="margin-top: 10px; font-size: 11px; color: var(--muted); line-height: 1.5;">
+                <strong>Asset rNPV</strong>: model output, peak calibrated to analyst consensus (±5%).<br>
+                <strong>Comm-adj rNPV</strong>: lower bound — same engine recomputed at WACC=14%, peak×0.60, commPoS×0.85.<br>
+                <strong>Deal PV</strong>: upfront + risk-adjusted milestone PV + (for licensing deals) royalty stream PV.<br>
+                <strong>Deal/rNPV</strong>: where Deal PV sits as % of Asset rNPV.<br>
+                Median Deal PV across 7 deals: <strong>55% of Asset rNPV</strong>. Comm-adj typically lands around 25–35% of Asset rNPV. Deal PV usually sits between these two. Full citations in docs/DEAL_VALIDATION_ANALYSIS.md.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app">BioValue is open source under the <a href="license.html">MIT License</a>. Outputs are model estimates — not investment advice.</footer>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ──────────────────────────────────────────────────────────────
+     POS TABLE — MIT Project ALPHA actual data, snapshot 2025-12-28
+     Source: data/mit_alpha/{Main,Biomarker}_20251228.txt
+     unselected = ALPHA NonBio (biomarker-classified non-biomarker programs)
+     biomarker  = ALPHA Bio (biomarker-stratified)
+     P(III→NDA) split from ALPHA's combined P(III→Approval) using fixed 0.91 NDA→App.
+     biomarkerEst = true when bio sample size < 30 paths in any phase
+                    (statistical confidence low) OR TA not in ALPHA.
+     alphaTa = the ALPHA indication group this UI TA maps to (null = no map).
+  ────────────────────────────────────────────────────────────── */
+  const PoSTable = {
+    'Oncology (all)':            { unselected: { p1_2: 0.584, p2_3: 0.270, p3_nda: 0.658, nda_app: 0.910 }, biomarker: { p1_2: 0.707, p2_3: 0.313, p3_nda: 0.601, nda_app: 0.910 }, biomarkerEst: false, alphaTa: 'Anticancer' },
+    'Oncology (IO / targeted)':  { unselected: { p1_2: 0.584, p2_3: 0.270, p3_nda: 0.658, nda_app: 0.910 }, biomarker: { p1_2: 0.707, p2_3: 0.313, p3_nda: 0.601, nda_app: 0.910 }, biomarkerEst: false, alphaTa: 'Anticancer' },
+    'Hematology':                { unselected: { p1_2: 0.743, p2_3: 0.661, p3_nda: 0.873, nda_app: 0.910 }, biomarker: { p1_2: 0.800, p2_3: 0.489, p3_nda: 0.806, nda_app: 0.910 }, biomarkerEst: false, alphaTa: 'Blood and Clotting' },
+    'Rare Disease':              { unselected: { p1_2: 0.680, p2_3: 0.550, p3_nda: 0.659, nda_app: 0.910 }, biomarker: { p1_2: 0.820, p2_3: 0.730, p3_nda: 0.791, nda_app: 0.910 }, biomarkerEst: true,  alphaTa: null },
+    'Immunology / Inflammation': { unselected: { p1_2: 0.658, p2_3: 0.560, p3_nda: 0.827, nda_app: 0.910 }, biomarker: { p1_2: 0.674, p2_3: 0.349, p3_nda: 0.687, nda_app: 0.910 }, biomarkerEst: false, alphaTa: 'Immunological' },
+    'CNS / Neurology':           { unselected: { p1_2: 0.672, p2_3: 0.454, p3_nda: 0.685, nda_app: 0.910 }, biomarker: { p1_2: 0.660, p2_3: 0.343, p3_nda: 0.511, nda_app: 0.910 }, biomarkerEst: false, alphaTa: 'Neurological' },
+    'Cardiovascular':            { unselected: { p1_2: 0.730, p2_3: 0.570, p3_nda: 0.678, nda_app: 0.910 }, biomarker: { p1_2: 0.793, p2_3: 0.503, p3_nda: 0.748, nda_app: 0.910 }, biomarkerEst: false, alphaTa: 'Cardiovascular' },
+    'Infectious Disease':        { unselected: { p1_2: 0.711, p2_3: 0.601, p3_nda: 0.809, nda_app: 0.910 }, biomarker: { p1_2: 0.770, p2_3: 0.496, p3_nda: 0.851, nda_app: 0.910 }, biomarkerEst: false, alphaTa: 'Anti-infective' },
+    'Cell & Gene Therapy':       { unselected: { p1_2: 0.580, p2_3: 0.410, p3_nda: 0.433, nda_app: 0.910 }, biomarker: { p1_2: 0.740, p2_3: 0.590, p3_nda: 0.579, nda_app: 0.910 }, biomarkerEst: true,  alphaTa: null },
+    'Rheumatology':              { unselected: { p1_2: 0.683, p2_3: 0.580, p3_nda: 0.771, nda_app: 0.910 }, biomarker: { p1_2: 0.778, p2_3: 0.480, p3_nda: 0.746, nda_app: 0.910 }, biomarkerEst: false, alphaTa: 'Musculoskeletal' },
+    'Endocrine / Metabolic':     { unselected: { p1_2: 0.754, p2_3: 0.605, p3_nda: 0.950, nda_app: 0.910 }, biomarker: { p1_2: 1.000, p2_3: 0.833, p3_nda: 0.549, nda_app: 0.910 }, biomarkerEst: true,  alphaTa: 'Hormonal (excluding sex hormones)' },
+    'Respiratory':               { unselected: { p1_2: 0.714, p2_3: 0.414, p3_nda: 0.681, nda_app: 0.910 }, biomarker: { p1_2: 0.729, p2_3: 0.286, p3_nda: 0.675, nda_app: 0.910 }, biomarkerEst: false, alphaTa: 'Respiratory' },
+    'Dermatology':               { unselected: { p1_2: 0.774, p2_3: 0.445, p3_nda: 0.779, nda_app: 0.910 }, biomarker: { p1_2: 0.704, p2_3: 0.409, p3_nda: 0.930, nda_app: 0.910 }, biomarkerEst: false, alphaTa: 'Dermatological' },
+    'GI / Hepatology':           { unselected: { p1_2: 0.665, p2_3: 0.477, p3_nda: 0.743, nda_app: 0.910 }, biomarker: { p1_2: 0.699, p2_3: 0.368, p3_nda: 0.733, nda_app: 0.910 }, biomarkerEst: false, alphaTa: 'Alimentary/Metabolic' },
+    'Nephrology':                { unselected: { p1_2: 0.752, p2_3: 0.545, p3_nda: 0.770, nda_app: 0.910 }, biomarker: { p1_2: 0.818, p2_3: 0.433, p3_nda: 0.676, nda_app: 0.910 }, biomarkerEst: true,  alphaTa: 'Genitourinary (including sex hormones)' },
+    'Ophthalmology':             { unselected: { p1_2: 0.823, p2_3: 0.525, p3_nda: 0.766, nda_app: 0.910 }, biomarker: { p1_2: 0.925, p2_3: 0.365, p3_nda: 0.733, nda_app: 0.910 }, biomarkerEst: true,  alphaTa: 'Sensory' },
+    "Women's Health":            { unselected: { p1_2: 0.752, p2_3: 0.545, p3_nda: 0.770, nda_app: 0.910 }, biomarker: { p1_2: 0.818, p2_3: 0.433, p3_nda: 0.676, nda_app: 0.910 }, biomarkerEst: true,  alphaTa: 'Genitourinary (including sex hormones)' },
+    'Vaccines':                  { unselected: { p1_2: 0.750, p2_3: 0.600, p3_nda: 0.778, nda_app: 0.910 }, biomarker: { p1_2: 0.830, p2_3: 0.740, p3_nda: 0.857, nda_app: 0.910 }, biomarkerEst: true,  alphaTa: null },
+    'Psychiatry':                { unselected: { p1_2: 0.672, p2_3: 0.454, p3_nda: 0.685, nda_app: 0.910 }, biomarker: { p1_2: 0.660, p2_3: 0.343, p3_nda: 0.511, nda_app: 0.910 }, biomarkerEst: false, alphaTa: 'Neurological' },
+  };
+
+  const TA_RNPV_RANGES = {
+    'Oncology (all)': { ph2: [150, 600], ph3: [400, 2000] },
+    'Oncology (IO / targeted)': { ph2: [200, 800], ph3: [600, 2500] },
+    'Hematology': { ph2: [200, 800], ph3: [600, 2500] },
+    'Rare Disease': { ph2: [150, 1500], ph3: [400, 2000] },
+    'Immunology / Inflammation': { ph2: [200, 1500], ph3: [500, 3000] },
+    'CNS / Neurology': { ph2: [100, 500], ph3: [400, 1500] },
+    'Cardiovascular': { ph2: [200, 800], ph3: [400, 1500] },
+    'Infectious Disease': { ph2: [100, 400], ph3: [200, 800] },
+    'Cell & Gene Therapy': { ph2: [300, 1500], ph3: [800, 3000] },
+    'Rheumatology': { ph2: [150, 600], ph3: [250, 1050] },
+    'Endocrine / Metabolic': { ph2: [300, 2700], ph3: [600, 3000] },
+    'Respiratory': { ph2: [200, 800], ph3: [300, 1200] },
+    'Dermatology': { ph2: [200, 700], ph3: [300, 1000] },
+    'GI / Hepatology': { ph2: [200, 1500], ph3: [400, 2000] },
+    'Nephrology': { ph2: [150, 600], ph3: [300, 1200] },
+    'Ophthalmology': { ph2: [200, 700], ph3: [400, 1200] },
+    "Women's Health": { ph2: [100, 500], ph3: [200, 800] },
+    'Vaccines': { ph2: [200, 800], ph3: [400, 1500] },
+    'Psychiatry': { ph2: [200, 1000], ph3: [300, 1500] },
+  };
+
+  const MODALITIES = [
+    { name: 'Small molecule',                 note: 'Standard reference modality. IRA 9-yr negotiation clock is a headwind for primary-care; offset via orphan/specialty.' },
+    { name: 'Oral small molecule',            note: '30–50% price premium when competing against IV/SC incumbents.' },
+    { name: 'Monoclonal antibody',            note: 'Standard biologic. IRA 13-yr clock advantage vs. small molecule; biosimilar erosion terminal risk.' },
+    { name: 'Bispecific antibody',            note: 'Active deal area in oncology (BCMA, CD3 engagers). Premium with safety differentiation.' },
+    { name: 'ADC (antibody-drug conjugate)',  note: '2024–25 deal surge — avg Ph II ADC upfront $1.8B. Late-2025 congestion in undifferentiated targets.' },
+    { name: 'mRNA / RNA therapeutic',         note: 'Post-COVID re-rated upward. Fit for rare and infectious disease.' },
+    { name: 'Gene therapy (AAV)',             note: 'Bimodal. Rare-disease premium for validated one-time economics; manufacturing/durability risks.' },
+    { name: 'Cell therapy (CAR-T)',           note: 'Heme premium; solid-tumor/autoimmune emerging. Manufacturing constrains scale.' },
+    { name: 'Peptide',                        note: 'GLP-1/GIP rewrote the space. Long-acting and oral formulations drive premium.' },
+    { name: 'Radioligand / TAT',              note: 'AZ/Fusion reset valuations. Isotope supply is critical.' },
+    { name: 'Vaccine',                        note: 'Highest PoS, lowest peak volatility ex-pandemic.' },
+    { name: 'Other',                          note: 'See TA narrative.' },
+  ];
+
+  const STAGES = ['Preclinical', 'Phase I', 'Phase II', 'Phase III', 'NDA/BLA', 'Approved'];
+  const PRECLIN_P1 = 0.60;
+  const DEFAULT_PHASE_DURATION = { 'Preclinical': 4.0, 'Phase I': 1.5, 'Phase II': 2.5, 'Phase III': 2.5, 'NDA/BLA': 1.0 };
+  const DEFAULT_PHASE_COST     = { 'Preclinical': 5,   'Phase I': 25,  'Phase II': 60,  'Phase III': 300, 'NDA/BLA': 15 };
+
+  /* ──────────────────────────────────────────────────────────────
+     DIFFERENTIATION FLAGS
+     posFailReduction by phase = relative reduction in failure rate
+     pricePremiumPct = additive percentage premium to price
+     lifeYearsDelta  = additive years on commercial life
+     rdCostPctDelta  = % adder to R&D costs across phases
+     rampYearsDelta  = additive years on ramp to peak (negative = faster)
+     evidence: 'high' = published; 'convention' = analyst convention
+  ────────────────────────────────────────────────────────────── */
+  const FLAGS = [
+    // Regulatory
+    { id: 'btd',         category: 'Regulatory', name: 'Breakthrough Therapy Designation', evidence: 'high',
+      effects: { posFailReduction: { p2_3: 0.23, p3_nda: 0.10 }, rampYearsDelta: -0.5 } },
+    { id: 'fastTrack',   category: 'Regulatory', name: 'Fast Track',  evidence: 'high',
+      effects: { posFailReduction: { nda_app: 0.20 } } },
+    { id: 'accApproval', category: 'Regulatory', name: 'Accelerated Approval pathway', evidence: 'high',
+      effects: { posFailReduction: { p2_3: 0.10 }, ph3DurationPctDelta: -0.20, ph3CostPctDelta: -0.25, posFailIncrease: { nda_app: 0.05 } } },
+    { id: 'orphan',      category: 'Regulatory', name: 'Orphan Drug Designation', evidence: 'high',
+      effects: { posFailReduction: { p2_3: 0.10 }, pricePremiumPct: 35, lifeYearsDelta: 2 } },
+    { id: 'rpd',         category: 'Regulatory', name: 'Rare Pediatric Disease (PRV-eligible)', evidence: 'high',
+      effects: { posFailReduction: { p2_3: 0.10 }, lifeYearsDelta: 0.5 } },
+    { id: 'prvHeld',     category: 'Regulatory', name: 'PRV held (review acceleration)', evidence: 'high',
+      effects: { ndaDurationPctDelta: -0.25 } },
+
+    // Trial design
+    { id: 'biomarker',   category: 'Trial design', name: 'Biomarker-selected population', evidence: 'high',
+      effects: { biomarkerReplace: true } },
+    { id: 'singleArm',   category: 'Trial design', name: 'Single-arm registration trial accepted', evidence: 'high',
+      effects: { ph3DurationPctDelta: -0.60, ph3CostPctDelta: -0.50, posFailIncrease: { nda_app: 0.10 } } },
+    { id: 'adaptive',    category: 'Trial design', name: 'Adaptive trial design', evidence: 'high',
+      effects: { ph2DurationPctDelta: -0.20, ph3DurationPctDelta: -0.20 } },
+
+    // Mechanism / positioning (mutually exclusive group)
+    { id: 'fic',         category: 'Mechanism', name: 'First-in-class', evidence: 'convention', exclusiveGroup: 'mechanism',
+      effects: { posFailIncrease: { p2_3: 0.05 }, pricePremiumPct: 15 } },
+    { id: 'bic',         category: 'Mechanism', name: 'Best-in-class (vs precedented)', evidence: 'convention', exclusiveGroup: 'mechanism',
+      effects: { pricePremiumPct: 10, shareBoostPct: 25 } },
+    { id: 'precedented', category: 'Mechanism', name: 'Precedented mechanism', evidence: 'high', exclusiveGroup: 'mechanism',
+      effects: { posFailReduction: { p1_2: 0.10, p2_3: 0.10, p3_nda: 0.10 } } },
+    { id: 'comboSoc',    category: 'Mechanism', name: 'Combination with standard of care', evidence: 'convention',
+      effects: { rampYearsDelta: -0.5 } },
+
+    // Administration (single picklist — handled by exclusiveGroup)
+    { id: 'oralVsInj',   category: 'Administration', name: 'Oral vs injectable incumbent', evidence: 'high', exclusiveGroup: 'admin',
+      effects: { pricePremiumPct: 40 } },
+    { id: 'scVsIv',      category: 'Administration', name: 'SC vs IV incumbent', evidence: 'convention', exclusiveGroup: 'admin',
+      effects: { pricePremiumPct: 15 } },
+    { id: 'longActing',  category: 'Administration', name: 'Long-acting depot', evidence: 'convention', exclusiveGroup: 'admin',
+      effects: { pricePremiumPct: 20 } },
+    { id: 'onceDaily',   category: 'Administration', name: 'Once-daily vs multi-dose incumbent', evidence: 'convention',
+      effects: { pricePremiumPct: 15 } },
+
+    // Negative
+    { id: 'cmcComplex',  category: 'Risk', name: 'Complex manufacturing (AAV / CAR-T / TAT)', evidence: 'convention',
+      effects: { rdCostPctDelta: 25, rampYearsDelta: 1 } },
+    { id: 'iraExposure', category: 'Risk', name: 'IRA Medicare retail exposure', evidence: 'high',
+      effects: { lifeYearsDelta: -1 } },
+  ];
+
+  // Caps
+  const CAP_POS_PER_TRANSITION = 0.90;
+  const CAP_PRICE_PREMIUM_PCT = 50;
+  const CAP_LIFE_YEARS_DELTA = 5;
+  const CAP_RD_COST_PCT_DELTA = 50;
+
+  // Competitive intensity → default peak share
+  // Indication library — typical US epi cascade values for common conditions, each with source attribution.
+  // Sources cited per indication. Pricing reflects approved-drug benchmarks in the indication class.
+  // Caveat: these are starting points for the cascade — refine with disease-specific epi reports for decision-grade analysis.
+  const INDICATION_LIBRARY = {
+    // Cardiometabolic & metabolic
+    'Type 2 Diabetes':                       { ta:'Endocrine / Metabolic', prevalence:11.6, pctChronic:90, pctTreated:65, pctAddressable:30, wacPrice:5000,  gtn:60, source:'CDC National Diabetes Statistics Report 2024' },
+    'Obesity (BMI ≥30)':                     { ta:'Endocrine / Metabolic', prevalence:42,   pctChronic:100, pctTreated:8,  pctAddressable:70, wacPrice:12000, gtn:50, source:'CDC NHANES 2017–2020; GLP-1 utilization data 2024' },
+    'MASH (NASH, F2–F4 fibrosis)':           { ta:'GI / Hepatology',       prevalence:1.5,  pctChronic:100, pctTreated:30, pctAddressable:45, wacPrice:15000, gtn:30, source:'Younossi 2024 (Hepatology); DelveInsight MASH Market 2024' },
+    'Hypertension':                          { ta:'Cardiovascular',        prevalence:48,   pctChronic:100, pctTreated:75, pctAddressable:20, wacPrice:1500,  gtn:65, source:'AHA Heart Disease &amp; Stroke Statistics 2024; CDC NHANES' },
+    'Atrial Fibrillation':                   { ta:'Cardiovascular',        prevalence:1.8,  pctChronic:80,  pctTreated:75, pctAddressable:30, wacPrice:8000,  gtn:40, source:'AHA 2024 statistics; CDC' },
+    'Heart Failure (HFpEF/HFrEF)':           { ta:'Cardiovascular',        prevalence:1.9,  pctChronic:100, pctTreated:80, pctAddressable:35, wacPrice:8000,  gtn:45, source:'AHA 2024; Heidenreich AHA/ACC HF Guideline 2022' },
+    'Hypercholesterolemia (HeFH)':           { ta:'Cardiovascular',        prevalence:0.4,  pctChronic:100, pctTreated:50, pctAddressable:40, wacPrice:7500,  gtn:35, source:'Nordestgaard BMJ 2013; FH Foundation' },
+
+    // CNS / neurology / psychiatry
+    "Alzheimer's Disease":                   { ta:'CNS / Neurology',       prevalence:1.8,  pctChronic:100, pctTreated:60, pctAddressable:30, wacPrice:25000, gtn:35, source:"Alzheimer's Association Facts &amp; Figures 2024" },
+    "Parkinson's Disease":                   { ta:'CNS / Neurology',       prevalence:0.3,  pctChronic:100, pctTreated:80, pctAddressable:50, wacPrice:6000,  gtn:35, source:"Marras 2018 (npj Parkinson's); Parkinson's Foundation 2024" },
+    'Multiple Sclerosis':                    { ta:'CNS / Neurology',       prevalence:0.3,  pctChronic:100, pctTreated:85, pctAddressable:40, wacPrice:65000, gtn:35, source:'National MS Society 2024' },
+    'Migraine (chronic/episodic)':           { ta:'CNS / Neurology',       prevalence:12,   pctChronic:40,  pctTreated:50, pctAddressable:30, wacPrice:7000,  gtn:50, source:'American Migraine Foundation; CDC NHIS' },
+    'Schizophrenia':                         { ta:'Psychiatry',            prevalence:1.0,  pctChronic:100, pctTreated:65, pctAddressable:40, wacPrice:20000, gtn:50, source:'NIMH; Saha 2005 (PLoS Med)' },
+    'Major Depressive Disorder':             { ta:'Psychiatry',            prevalence:8.3,  pctChronic:60,  pctTreated:50, pctAddressable:30, wacPrice:3000,  gtn:55, source:'NIMH National Comorbidity Survey Replication; NSDUH 2023' },
+    'Bipolar Disorder':                      { ta:'Psychiatry',            prevalence:2.8,  pctChronic:100, pctTreated:55, pctAddressable:35, wacPrice:8000,  gtn:50, source:'NIMH; Merikangas 2007 (Arch Gen Psychiatry)' },
+    'Drug-resistant Epilepsy (TLE)':         { ta:'CNS / Neurology',       prevalence:0.15, pctChronic:100, pctTreated:100, pctAddressable:33, wacPrice:400000, gtn:25, source:'Epilepsy Foundation; Engel &amp; Pedley Epilepsy textbook; AES guidelines' },
+
+    // Immunology / inflammation
+    'Ulcerative Colitis':                    { ta:'Immunology / Inflammation', prevalence:0.3, pctChronic:100, pctTreated:80, pctAddressable:40, wacPrice:50000, gtn:50, source:'CDC IBD surveillance; Lichtenstein ACG 2023 guidelines' },
+    "Crohn's Disease":                       { ta:'Immunology / Inflammation', prevalence:0.2, pctChronic:100, pctTreated:85, pctAddressable:45, wacPrice:50000, gtn:50, source:'CDC IBD surveillance; Lichtenstein ACG 2023 guidelines' },
+    'Rheumatoid Arthritis':                  { ta:'Immunology / Inflammation', prevalence:0.6, pctChronic:100, pctTreated:80, pctAddressable:50, wacPrice:40000, gtn:50, source:'CDC arthritis surveillance; Hunter Arthritis Care 2017' },
+    'Psoriasis (moderate-severe)':           { ta:'Dermatology',           prevalence:1.5,  pctChronic:50,  pctTreated:65, pctAddressable:50, wacPrice:45000, gtn:55, source:'National Psoriasis Foundation; Rachakonda JAAD 2014' },
+    'Atopic Dermatitis (moderate-severe)':   { ta:'Dermatology',           prevalence:2.5,  pctChronic:60,  pctTreated:40, pctAddressable:50, wacPrice:35000, gtn:50, source:'National Eczema Association; Silverberg J Allergy Clin Immunol 2018' },
+    'Systemic Lupus Erythematosus':          { ta:'Immunology / Inflammation', prevalence:0.07, pctChronic:100, pctTreated:75, pctAddressable:40, wacPrice:40000, gtn:45, source:'Lupus Foundation of America; Izmirly Arthritis Rheumatol 2021' },
+
+    // Respiratory
+    'COPD':                                  { ta:'Respiratory',           prevalence:6.0,  pctChronic:100, pctTreated:70, pctAddressable:30, wacPrice:3500,  gtn:50, source:'CDC BRFSS 2023; American Lung Association' },
+    'Asthma (severe)':                       { ta:'Respiratory',           prevalence:8.0,  pctChronic:100, pctTreated:80, pctAddressable:15, wacPrice:30000, gtn:45, source:'CDC asthma surveillance 2023; GINA 2024' },
+    'Idiopathic Pulmonary Fibrosis':         { ta:'Respiratory',           prevalence:0.03, pctChronic:100, pctTreated:60, pctAddressable:40, wacPrice:100000, gtn:30, source:'Raghu Am J Respir Crit Care Med 2014; PFF' },
+
+    // Rheumatology / metabolic bone
+    'Chronic refractory gout':               { ta:'Rheumatology',          prevalence:3.9,  pctChronic:13,  pctTreated:12, pctAddressable:25, wacPrice:24000, gtn:25, source:'DelveInsight Chronic Refractory Gout Market 2025; CDC NHANES' },
+    'Osteoarthritis (knee/hip)':             { ta:'Rheumatology',          prevalence:14,   pctChronic:100, pctTreated:70, pctAddressable:25, wacPrice:5000,  gtn:55, source:'CDC arthritis statistics 2023; OA Research Society International' },
+
+    // Renal
+    'ADPKD':                                 { ta:'Nephrology',            prevalence:0.042, pctChronic:100, pctTreated:100, pctAddressable:60, wacPrice:30000, gtn:20, source:'PKD Foundation; Lanktree J Am Soc Nephrol 2018' },
+    'Chronic Kidney Disease (CKD)':          { ta:'Nephrology',            prevalence:14,   pctChronic:100, pctTreated:30, pctAddressable:25, wacPrice:8000,  gtn:50, source:'CDC CKD surveillance 2023; USRDS annual report' },
+
+    // Hepatology
+    'Primary Biliary Cholangitis':           { ta:'GI / Hepatology',       prevalence:0.03, pctChronic:100, pctTreated:80, pctAddressable:50, wacPrice:60000, gtn:25, source:'Lu Hepatology 2018; American Liver Foundation' },
+
+    // Ophthalmology
+    'Diabetic Macular Edema (DME)':          { ta:'Ophthalmology',         prevalence:0.22, pctChronic:100, pctTreated:60, pctAddressable:30, wacPrice:12000, gtn:30, source:'American Diabetes Association 2024; NEI' },
+    'Neovascular AMD (wet AMD)':             { ta:'Ophthalmology',         prevalence:0.45, pctChronic:100, pctTreated:80, pctAddressable:50, wacPrice:15000, gtn:30, source:'NEI; Friedman Arch Ophthalmol 2004 (updated)' },
+    'Diabetic Retinopathy':                  { ta:'Ophthalmology',         prevalence:2.8,  pctChronic:100, pctTreated:40, pctAddressable:25, wacPrice:12000, gtn:30, source:'CDC; ADA 2024' },
+
+    // Oncology (annual incidence-based ≈ prevalence for treated population)
+    'HER2+ Breast Cancer (mBC)':             { ta:'Oncology (all)',        prevalence:0.018, pctChronic:50, pctTreated:95, pctAddressable:70, wacPrice:180000, gtn:25, source:'SEER 2024; HER2+ subtype literature (Slamon NEJM)' },
+    'NSCLC (advanced)':                      { ta:'Oncology (all)',        prevalence:0.03, pctChronic:50, pctTreated:90, pctAddressable:40, wacPrice:180000, gtn:25, source:'SEER 2024; NCCN NSCLC Guidelines' },
+    'mCRPC (metastatic prostate)':           { ta:'Oncology (all)',        prevalence:0.018, pctChronic:50, pctTreated:90, pctAddressable:60, wacPrice:120000, gtn:25, source:'SEER 2024; mCRPC subset (Scher J Clin Oncol)' },
+    'Ovarian Cancer (folate-α+)':            { ta:'Oncology (all)',        prevalence:0.007, pctChronic:50, pctTreated:90, pctAddressable:50, wacPrice:180000, gtn:25, source:'SEER 2024; FRα expression literature (Kalli Gynecol Oncol)' },
+    'Urothelial Cancer':                     { ta:'Oncology (all)',        prevalence:0.024, pctChronic:50, pctTreated:85, pctAddressable:50, wacPrice:150000, gtn:25, source:'SEER 2024; NCCN bladder cancer guidelines' },
+    'Pancreatic Cancer':                     { ta:'Oncology (all)',        prevalence:0.018, pctChronic:40, pctTreated:80, pctAddressable:40, wacPrice:150000, gtn:25, source:'SEER 2024; PanCAN Action Network' },
+
+    // Hematology
+    'Multiple Myeloma (R/R)':                { ta:'Hematology',            prevalence:0.009, pctChronic:100, pctTreated:100, pctAddressable:80, wacPrice:250000, gtn:25, source:'SEER 2024; R/R subset literature (Rajkumar Lancet Oncol)' },
+    'MDS (higher-risk)':                     { ta:'Hematology',            prevalence:0.012, pctChronic:100, pctTreated:85,  pctAddressable:40, wacPrice:120000, gtn:25, source:'SEER 2024; IPSS-R stratification (Greenberg Blood)' },
+    'Sickle Cell Disease':                   { ta:'Hematology',            prevalence:0.03,  pctChronic:100, pctTreated:70,  pctAddressable:40, wacPrice:30000,  gtn:30, source:'CDC SCD surveillance; Hassell Am J Prev Med 2010' },
+    'AML':                                   { ta:'Hematology',            prevalence:0.009, pctChronic:50,  pctTreated:90,  pctAddressable:50, wacPrice:150000, gtn:25, source:'SEER 2024; NCCN AML Guidelines' },
+  };
+
+  const COMPETITION = {
+    'Underserved / no incumbent':       { peakShare: 0.45 },
+    'Lightly contested (1–2 incumbents)': { peakShare: 0.25 },
+    'Contested (3–4 approved)':         { peakShare: 0.12 },
+    'Saturated (5+ approved)':          { peakShare: 0.06 },
+  };
+
+  // Deal comps from MARKET_REPORT.md
+  const DEAL_COMPS = [
+    { year: 2025, party: 'Sobi / Arthrosi',         asset: 'Pozdeutinurad',  indication: 'Chronic Refractory Gout', stage: 'Phase III', ta: 'Rheumatology',              upfront: 950,   total: 1500 },
+    { year: 2025, party: 'Novartis / Anthos',       asset: 'Abelacimab',     indication: 'AFib / VTE',              stage: 'Phase III', ta: 'Cardiovascular',            upfront: 925,   total: 3100 },
+    { year: 2025, party: 'Eli Lilly / Morphic',     asset: 'MORF-057',       indication: 'IBD (αvβ6)',              stage: 'Phase II',  ta: 'Immunology / Inflammation', upfront: 3200,  total: 3200 },
+    { year: 2024, party: 'AstraZeneca / Fusion',    asset: 'TAT platform',   indication: 'Oncology',                stage: 'Phase I',   ta: 'Oncology (all)',            upfront: 2400,  total: 2400 },
+    { year: 2024, party: 'Roche / Carmot',          asset: 'GLP-1 SC',       indication: 'Obesity / T2D',           stage: 'Phase II',  ta: 'Endocrine / Metabolic',     upfront: 2700,  total: 3100 },
+    { year: 2024, party: 'Novo Nordisk / Cardior',  asset: 'CDR132L',        indication: 'Heart Failure',           stage: 'Phase II',  ta: 'Cardiovascular',            upfront: 1025,  total: 1025 },
+    { year: 2024, party: 'Pfizer / Nuvation Bio',   asset: 'Navtemadlin',    indication: 'Heme / MDS',              stage: 'Phase II',  ta: 'Hematology',                upfront: 1000,  total: 1000 },
+    { year: 2023, party: 'AbbVie / ImmunoGen',      asset: 'IMGN853',        indication: 'Ovarian cancer',          stage: 'Phase III', ta: 'Oncology (all)',            upfront: 10100, total: 10100 },
+    { year: 2023, party: 'Merck / Prometheus',      asset: 'PRA023',         indication: "UC / Crohn's",            stage: 'Phase II',  ta: 'Immunology / Inflammation', upfront: 10800, total: 10800 },
+    { year: 2023, party: 'Pfizer / Seagen',         asset: 'ADC pipeline',   indication: 'Oncology',                stage: 'Approved',  ta: 'Oncology (all)',            upfront: 43000, total: 43000 },
+    { year: 2022, party: 'BMS / Turning Point',     asset: 'Repotrectinib',  indication: 'NSCLC (ROS1/NTRK)',       stage: 'Phase III', ta: 'Oncology (all)',            upfront: 4100,  total: 4100 },
+  ];
+
+  const ROYALTY_TABLE = [
+    { ta: 'Oncology (all)', ph1: '6–10%', ph2: '10–14%', ph3: '14–20%', post: '16–22%' },
+    { ta: 'Oncology (IO / targeted)', ph1: '6–10%', ph2: '10–14%', ph3: '14–20%', post: '16–22%' },
+    { ta: 'Hematology', ph1: '7–11%', ph2: '11–15%', ph3: '14–20%', post: '16–22%' },
+    { ta: 'Immunology / Inflammation', ph1: '8–12%', ph2: '12–16%', ph3: '14–18%', post: '15–20%' },
+    { ta: 'Rare Disease', ph1: '10–15%', ph2: '14–18%', ph3: '16–22%', post: '18–25%' },
+    { ta: 'CNS / Neurology', ph1: '7–10%', ph2: '10–14%', ph3: '12–16%', post: '14–18%' },
+    { ta: 'Cardiovascular', ph1: '6–9%', ph2: '9–13%', ph3: '12–16%', post: '14–17%' },
+    { ta: 'Rheumatology', ph1: '8–12%', ph2: '12–15%', ph3: '14–18%', post: '15–20%' },
+    { ta: 'Endocrine / Metabolic', ph1: '7–10%', ph2: '10–14%', ph3: '13–17%', post: '15–19%' },
+    { ta: 'Respiratory', ph1: '7–10%', ph2: '10–14%', ph3: '12–16%', post: '14–18%' },
+    { ta: 'Dermatology', ph1: '8–11%', ph2: '11–15%', ph3: '13–17%', post: '15–19%' },
+    { ta: 'GI / Hepatology', ph1: '8–12%', ph2: '12–16%', ph3: '14–18%', post: '15–20%' },
+    { ta: 'Nephrology', ph1: '8–12%', ph2: '12–16%', ph3: '14–18%', post: '15–20%' },
+    { ta: 'Ophthalmology', ph1: '7–11%', ph2: '11–15%', ph3: '13–17%', post: '15–19%' },
+    { ta: "Women's Health", ph1: '7–10%', ph2: '10–14%', ph3: '12–16%', post: '14–18%' },
+    { ta: 'Infectious Disease', ph1: '6–9%', ph2: '9–13%', ph3: '12–16%', post: '14–17%' },
+    { ta: 'Vaccines', ph1: '5–8%', ph2: '7–11%', ph3: '10–14%', post: '12–16%' },
+    { ta: 'Cell & Gene Therapy', ph1: '10–15%', ph2: '14–18%', ph3: '16–22%', post: '18–25%' },
+    { ta: 'Psychiatry', ph1: '7–10%', ph2: '10–14%', ph3: '12–16%', post: '14–18%' },
+  ];
+
+  /* ──────────────────────────────────────────────────────────────
+     FORMATTING
+  ────────────────────────────────────────────────────────────── */
+  function fmtM(v) {
+    if (!isFinite(v)) return '—';
+    const abs = Math.abs(v); const sign = v < 0 ? '-' : '';
+    if (abs >= 1000) return sign + '$' + (abs / 1000).toFixed(2) + 'B';
+    return sign + '$' + Math.round(abs) + 'M';
+  }
+  const fmtPct  = v => (v * 100).toFixed(1) + '%';
+  const fmtPct0 = v => (v * 100).toFixed(0) + '%';
+  function fmtNum(v) {
+    if (!isFinite(v)) return '—';
+    if (v >= 1_000_000) return (v / 1_000_000).toFixed(1) + 'M';
+    if (v >= 1_000)     return (v / 1_000).toFixed(1) + 'K';
+    return Math.round(v).toString();
+  }
+
+  /* ──────────────────────────────────────────────────────────────
+     STATE
+  ────────────────────────────────────────────────────────────── */
+  function defaultEpi() {
+    return { population: 335_000_000, prevalence: 3.9, pctChronic: 13, pctTreated: 12, pctAddressable: 25, wacPrice: 24000 };
+  }
+  function defaultPhase() {
+    const dur = {}; const cost = {};
+    Object.keys(DEFAULT_PHASE_DURATION).forEach(s => { dur[s] = DEFAULT_PHASE_DURATION[s]; cost[s] = DEFAULT_PHASE_COST[s]; });
+    return { duration: dur, cost: cost };
+  }
+  function defaultFlags() {
+    const o = {}; FLAGS.forEach(f => { o[f.id] = { on: false, mag: 1.0 }; }); return o;
+  }
+  function defaultSubTabs() {
+    return {
+      'asset-left': 'asset-left-identity',
+      asset: 'asset-active-effects',
+      market: 'market-cascade',
+      development: 'dev-breakdown',
+      commercial: 'commercial-ramp',
+      capital: 'capital-wacc',
+      dealtarget: 'dt-range',
+    };
+  }
+  function defaultDealStructure() {
+    return {
+      dealMilestones_M: 0,        // total nominal milestone pool
+      dealMilestoneRegPct: 50,    // % of milestones that are regulatory (rest are sales-based)
+      dealSalesProb: 70,          // probability of hitting sales threshold given approval (%)
+    };
+  }
+  function defaultInputs() {
+    return {
+      assetName: 'New Asset',
+      indication: '',
+      ta: 'Oncology (all)',
+      modality: 'Small molecule',
+      mechanism: '',
+      currentStage: 'Phase II',
+      wacc: 10,
+      gtn: 25,
+      wwMult: 1.5,
+      competition: 'Contested (3–4 approved)',
+      peakSharePct: 12,
+      rampYears: 5,
+      commercialLifeBase: 12,
+      loeHaircutPct: 45,
+      royalty: 0,
+      dealUpfront_M: 0, dealCounterparty: '',
+      posOverride: { p1_2: null, p2_3: null, p3_nda: null, nda_app: null },
+      epi: defaultEpi(),
+      phase: defaultPhase(),
+      flags: defaultFlags(),
+      subTabs: defaultSubTabs(),
+      activePresetKey: null,
+      ...defaultDealStructure(),
+    };
+  }
+  // 8 validated single-asset deal presets — each pre-populates identity, epi cascade, stage, flags, deal terms.
+  // Sourced from docs/DEAL_VALIDATION_ANALYSIS.md
+  const DEAL_PRESETS = {
+    pozdeutinurad: {
+      label: 'Sobi / Arthrosi — Pozdeutinurad (Phase III, gout)',
+      summary: 'Sobi acquired Arthrosi in <strong>Dec 2025</strong> for <span class="preset-banner-stat">$950M upfront</span> <span class="preset-banner-stat">$550M milestones</span> <span class="preset-banner-stat">$1.5B total</span>. <strong>Phase III oral URAT1 inhibitor</strong> for chronic refractory gout. Two Ph3 trials fully enrolled at signing, data expected 2026. Strategic fit with Sobi\'s existing Krystexxa gout franchise. Oral positioning vs IV pegloticase.',
+      assetName: 'Pozdeutinurad (AR882)', indication: 'Chronic refractory gout',
+      ta: 'Rheumatology', modality: 'Oral small molecule', mechanism: 'URAT1 inhibitor',
+      currentStage: 'Phase III', wacc: 9.5,
+      epi: { population: 335_000_000, prevalence: 3.9, pctChronic: 13, pctTreated: 12, pctAddressable: 25, wacPrice: 24000 },
+      gtn: 25, wwMult: 1.5,
+      competition: 'Lightly contested (1–2 incumbents)', peakSharePct: 35,
+      rampYears: 5, commercialLifeBase: 12, loeHaircutPct: 45,
+      dealUpfront_M: 950, dealMilestones_M: 550, dealMilestoneRegPct: 60, dealSalesProb: 70,
+      dealCounterparty: 'Sobi (Dec 2025) · total $1.5B',
+      flagsOn: ['oralVsInj'],
+    },
+    abelacimab: {
+      label: 'Novartis / Anthos — Abelacimab (Phase III, AFib/VTE)',
+      summary: 'Novartis acquired Anthos in <strong>Feb 2025</strong> for <span class="preset-banner-stat">$925M upfront</span> <span class="preset-banner-stat">$2.15B milestones</span> <span class="preset-banner-stat">$3.1B total</span>. <strong>Phase III anti-Factor XI mAb</strong> for AFib stroke prevention + VTE. Three enrolled Ph3 trials (MAGNETIC-AF, MAGNETIC-VTE, ASTER) at signing. Best-in-class bleed-safety claim vs incumbent DOACs; heavily milestone-weighted to share Ph3 safety-readout risk.',
+      assetName: 'Abelacimab', indication: 'AFib / VTE (Factor XI inhibitor)',
+      ta: 'Cardiovascular', modality: 'Monoclonal antibody', mechanism: 'Anti-FXI / FXIa',
+      currentStage: 'Phase III', wacc: 9.5,
+      epi: { population: 335_000_000, prevalence: 2.0, pctChronic: 80, pctTreated: 75, pctAddressable: 20, wacPrice: 8000 },
+      gtn: 40, wwMult: 1.5,
+      competition: 'Contested (3–4 approved)', peakSharePct: 22,
+      rampYears: 5, commercialLifeBase: 12, loeHaircutPct: 30,
+      dealUpfront_M: 925, dealMilestones_M: 2150, dealMilestoneRegPct: 50, dealSalesProb: 70,
+      dealCounterparty: 'Novartis (Feb 2025) · total $3.1B',
+      flagsOn: ['bic'],
+    },
+    restoret: {
+      label: 'Merck / EyeBio — Restoret (Phase II, DME/nAMD)',
+      summary: 'Merck acquired EyeBio in <strong>Jul 2024</strong> for <span class="preset-banner-stat">$1.3B upfront</span> <span class="preset-banner-stat">$1.7B milestones</span> <span class="preset-banner-stat">$3.0B total</span>. <strong>First-in-class Wnt-mimetic bispecific</strong> for diabetic macular edema with retina-wide expansion potential (nAMD, DR). Phase Ib/IIa SPECTRA trial in progress; 12-week DME efficacy data presented at ASRS 2024.',
+      assetName: 'Restoret (EYE103)', indication: 'DME + nAMD (Wnt-mimetic)',
+      ta: 'Ophthalmology', modality: 'Bispecific antibody', mechanism: 'Wnt-mimetic Frizzled-4/LRP5/Tspan12 agonist',
+      currentStage: 'Phase II', wacc: 10.0,
+      epi: { population: 335_000_000, prevalence: 0.45, pctChronic: 100, pctTreated: 100, pctAddressable: 50, wacPrice: 15000 },
+      gtn: 30, wwMult: 1.5,
+      competition: 'Contested (3–4 approved)', peakSharePct: 22,
+      rampYears: 5, commercialLifeBase: 12, loeHaircutPct: 30,
+      dealUpfront_M: 1300, dealMilestones_M: 1700, dealMilestoneRegPct: 50, dealSalesProb: 70,
+      dealCounterparty: 'Merck (Jul 2024) · total $3.0B',
+      flagsOn: ['fic'],
+    },
+    efimosfermin: {
+      label: 'GSK / Boston Pharma — Efimosfermin (Phase III, MASH)',
+      summary: 'GSK acquired efimosfermin alfa from Boston Pharmaceuticals in <strong>May 2025</strong> for <span class="preset-banner-stat">$1.2B upfront</span> <span class="preset-banner-stat">$800M milestones</span> <span class="preset-banner-stat">$2.0B total</span>. <strong>Once-monthly subcutaneous FGF21 analog</strong> for MASH and broader steatotic liver disease. Ph2b topline complete with F2/F3 fibrosis response data; Phase III-ready. Best-in-class FGF21 vs Madrigal\'s THR-β Rezdiffra.',
+      assetName: 'Efimosfermin alfa (BOS-580)', indication: 'MASH / steatotic liver disease',
+      ta: 'GI / Hepatology', modality: 'Peptide', mechanism: 'Long-acting FGF21 analog',
+      currentStage: 'Phase III', wacc: 9.0,
+      epi: { population: 335_000_000, prevalence: 1.5, pctChronic: 100, pctTreated: 30, pctAddressable: 45, wacPrice: 15000 },
+      gtn: 30, wwMult: 1.5,
+      competition: 'Lightly contested (1–2 incumbents)', peakSharePct: 14,
+      rampYears: 5, commercialLifeBase: 12, loeHaircutPct: 35,
+      dealUpfront_M: 1200, dealMilestones_M: 800, dealMilestoneRegPct: 50, dealSalesProb: 70,
+      dealCounterparty: 'GSK (May 2025) · total $2.0B',
+      flagsOn: ['bic'],
+    },
+    farabursen: {
+      label: 'Novartis / Regulus — Farabursen (Phase III, ADPKD)',
+      summary: 'Novartis acquired Regulus in <strong>Apr 2025</strong> for <span class="preset-banner-stat">$800M upfront</span> <span class="preset-banner-stat">$900M CVR</span> <span class="preset-banner-stat">$1.7B total</span>. <strong>First-in-class miR-17 oligonucleotide</strong> for autosomal dominant polycystic kidney disease. Phase 1b multiple-ascending-dose trial completed Mar 2025; skipping Phase 2 and going directly to pivotal Phase 3 (orphan-disease pathway). CVR triggers on FDA approval.',
+      assetName: 'Farabursen (RGLS8429)', indication: 'ADPKD',
+      ta: 'Nephrology', modality: 'mRNA / RNA therapeutic', mechanism: 'miR-17 oligonucleotide inhibitor',
+      currentStage: 'Phase III', wacc: 9.5,
+      epi: { population: 335_000_000, prevalence: 0.042, pctChronic: 100, pctTreated: 100, pctAddressable: 60, wacPrice: 30000 },
+      gtn: 20, wwMult: 1.5,
+      competition: 'Underserved / no incumbent', peakSharePct: 33,
+      rampYears: 5, commercialLifeBase: 12, loeHaircutPct: 25,
+      dealUpfront_M: 800, dealMilestones_M: 900, dealMilestoneRegPct: 100, dealSalesProb: 70,
+      dealCounterparty: 'Novartis (Apr 2025) · total $1.7B (CVR-weighted)',
+      flagsOn: ['fic', 'orphan'],
+    },
+    isb2001: {
+      label: 'AbbVie / IGI — ISB 2001 (Phase II, R/R multiple myeloma)',
+      summary: 'AbbVie licensed ISB 2001 from Ichnos Glenmark Innovation in <strong>Jul 2025</strong> for <span class="preset-banner-stat">$700M upfront</span> <span class="preset-banner-stat">$1.225B milestones</span> <span class="preset-banner-stat">$1.9B+ total</span> plus tiered double-digit royalties. <strong>First-in-class CD38×BCMA×CD3 trispecific T-cell engager</strong> for relapsed/refractory multiple myeloma. Phase 1 data at ASCO 2025: 79% ORR, 30% CR/sCR in heavily pretreated patients. FDA Fast Track May 2025.',
+      assetName: 'ISB 2001', indication: 'R/R multiple myeloma (CD38×BCMA×CD3)',
+      ta: 'Hematology', modality: 'Bispecific antibody', mechanism: 'Trispecific T-cell engager (CD38/BCMA/CD3)',
+      currentStage: 'Phase II', wacc: 10.5,
+      epi: { population: 335_000_000, prevalence: 0.009, pctChronic: 100, pctTreated: 100, pctAddressable: 80, wacPrice: 250000 },
+      gtn: 25, wwMult: 1.5,
+      competition: 'Contested (3–4 approved)', peakSharePct: 32,
+      rampYears: 4, commercialLifeBase: 12, loeHaircutPct: 35,
+      dealUpfront_M: 700, dealMilestones_M: 1225, dealMilestoneRegPct: 55, dealSalesProb: 70,
+      royalty: 14,  // tiered double-digit royalties per AbbVie/IGI press release; midpoint estimate
+      dealCounterparty: 'AbbVie (Jul 2025) · total $1.9B + tiered double-digit royalties',
+      flagsOn: ['fic', 'fastTrack', 'biomarker'],
+    },
+    // UCB/Neurona dropped from validation set — it was a platform/multi-asset acquisition
+    // (NRTX-1001 lead + NRTX-2001 + preclinical pipeline + cell-derivation manufacturing platform)
+    // that doesn't fit single-asset rNPV. Kept the comment as a placeholder for documentation.
+    vg3927: {
+      label: 'Sanofi / Vigil — VG-3927 (Phase II, Alzheimer\'s)',
+      summary: 'Sanofi acquired Vigil Neuroscience in <strong>May 2025</strong> for <span class="preset-banner-stat">$470M upfront</span> <span class="preset-banner-stat">$2/share CVR</span> <span class="preset-banner-stat">$590M total</span>. <strong>Oral small-molecule TREM2 agonist</strong> for Alzheimer\'s disease. Phase 1 fully complete with positive safety and TREM2 engagement data; Phase 2-ready. Sanofi had right of first negotiation from $40M strategic investment in 2024.',
+      assetName: 'VG-3927', indication: "Alzheimer's disease (oral TREM2 agonist)",
+      ta: 'CNS / Neurology', modality: 'Oral small molecule', mechanism: 'TREM2 agonist',
+      currentStage: 'Phase II', wacc: 12.0,
+      epi: { population: 335_000_000, prevalence: 1.8, pctChronic: 100, pctTreated: 60, pctAddressable: 30, wacPrice: 25000 },
+      gtn: 35, wwMult: 1.5,
+      competition: 'Underserved / no incumbent', peakSharePct: 5,
+      rampYears: 5, commercialLifeBase: 12, loeHaircutPct: 40,
+      dealUpfront_M: 470, dealMilestones_M: 120, dealMilestoneRegPct: 0, dealSalesProb: 70,
+      dealCounterparty: 'Sanofi (May 2025) · total $590M (with CVR)',
+      flagsOn: ['fic'],
+    },
+    // ──────────────────────────────────────────────────────────────
+    // BIOMARKER CASE STUDIES (not validation deals; illustrate biomarker valuation framework)
+    // ──────────────────────────────────────────────────────────────
+    tezepelumab: {
+      label: 'CASE STUDY — Tezepelumab (severe asthma, broad mechanism)',
+      summary: '<strong>Case study, not a deal.</strong> Tezepelumab (Tezspire), AstraZeneca/Amgen anti-TSLP mAb approved <strong>Dec 2021</strong> for severe asthma <strong>with no biomarker restriction</strong>. NAVIGATOR Ph3 enrolled across all phenotypes including eos-low patients. Disrupts a market where incumbents (anti-IL-5s, anti-IgE) required biomarker enrichment. <span class="preset-banner-stat">$3B+ projected peak</span> vs. anti-IL-5s at $1.5–2B each.',
+      assetName: 'Tezepelumab (Tezspire)', indication: 'Severe asthma (anti-TSLP, all phenotypes)',
+      ta: 'Respiratory', modality: 'Monoclonal antibody', mechanism: 'Anti-TSLP (upstream alarmin)',
+      currentStage: 'Phase III', wacc: 9.5,
+      epi: { population: 335_000_000, prevalence: 0.6, pctChronic: 100, pctTreated: 80, pctAddressable: 40, wacPrice: 40000 },
+      gtn: 35, wwMult: 1.5,
+      competition: 'Saturated (5+ approved)', peakSharePct: 12,
+      rampYears: 5, commercialLifeBase: 13, loeHaircutPct: 30,
+      dealUpfront_M: 0, dealMilestones_M: 0, dealMilestoneRegPct: 50, dealSalesProb: 70,
+      dealCounterparty: 'Case study (AZ/Amgen partnership, no public M&A deal)',
+      flagsOn: ['bic'],
+    },
+    tafamidis: {
+      label: 'CASE STUDY — Tafamidis (ATTR-CM, biomarker carve-out from HF)',
+      summary: '<strong>Case study, not a deal.</strong> Tafamidis (Vyndaqel/Vyndamax), Pfizer TTR stabilizer approved <strong>May 2019</strong> for ATTR cardiomyopathy. ATTR-CM is a biomarker-defined molecular subset of heart failure (TTR amyloid deposition confirmed by scintigraphy or biopsy). The biomarker carved out a small, premium-priced, near-monopoly market from a generic-dominated HF landscape. Peak sales <span class="preset-banner-stat">$5B+ WW (2024)</span> from a US patient pool of ~150K vs. ~6M for broad HF.',
+      assetName: 'Tafamidis (Vyndaqel/Vyndamax)', indication: 'ATTR cardiomyopathy (biomarker-defined HF subset)',
+      ta: 'Cardiovascular', modality: 'Oral small molecule', mechanism: 'TTR stabilizer',
+      currentStage: 'Phase III', wacc: 9.0,
+      epi: { population: 335_000_000, prevalence: 0.045, pctChronic: 100, pctTreated: 30, pctAddressable: 60, wacPrice: 240000 },
+      gtn: 20, wwMult: 1.5,
+      competition: 'Underserved / no incumbent', peakSharePct: 70,
+      rampYears: 4, commercialLifeBase: 13, loeHaircutPct: 30,
+      dealUpfront_M: 0, dealMilestones_M: 0, dealMilestoneRegPct: 50, dealSalesProb: 70,
+      dealCounterparty: 'Case study (Pfizer/FoldRx 2010 acquisition predated ATTR-CM trial)',
+      flagsOn: ['fic', 'orphan', 'biomarker'],
+    },
+    lecanemab: {
+      label: 'CASE STUDY — Lecanemab (early AD, biomarker-enriched)',
+      summary: '<strong>Case study, not a deal.</strong> Lecanemab (Leqembi), Eisai/Biogen anti-amyloid mAb approved <strong>Jul 2023</strong> for early symptomatic AD. CLARITY-AD Ph3 required <strong>amyloid biomarker confirmation</strong> at enrollment (amyloid PET or CSF Aβ42/40). Two decades of anti-amyloid trials in unenriched clinical AD populations had failed (bapineuzumab, solanezumab, gantenerumab). Lecanemab and donanemab demonstrate that biomarker enrichment was the precondition for the program to be approvable.',
+      assetName: 'Lecanemab (Leqembi)', indication: "Early symptomatic Alzheimer's disease (amyloid-positive)",
+      ta: 'CNS / Neurology', modality: 'Monoclonal antibody', mechanism: 'Anti-amyloid β protofibril',
+      currentStage: 'Phase III', wacc: 10.0,
+      epi: { population: 335_000_000, prevalence: 0.376, pctChronic: 100, pctTreated: 60, pctAddressable: 50, wacPrice: 26000 },
+      gtn: 35, wwMult: 1.5,
+      competition: 'Lightly contested (1–2 incumbents)', peakSharePct: 45,
+      rampYears: 5, commercialLifeBase: 13, loeHaircutPct: 30,
+      dealUpfront_M: 0, dealMilestones_M: 0, dealMilestoneRegPct: 50, dealSalesProb: 70,
+      dealCounterparty: 'Case study (Eisai/BioArctic license; Eisai/Biogen co-commercial)',
+      flagsOn: ['btd', 'biomarker'],
+    },
+  };
+
+  function applyPreset(presetKey) {
+    const p = DEAL_PRESETS[presetKey];
+    if (!p) return defaultInputs();
+    const s = defaultInputs();
+    s.activePresetKey = presetKey;
+    s.assetName = p.assetName; s.indication = p.indication;
+    s.ta = p.ta; s.modality = p.modality; s.mechanism = p.mechanism;
+    s.currentStage = p.currentStage; s.wacc = p.wacc;
+    s.epi = Object.assign({}, p.epi);
+    s.gtn = p.gtn; s.wwMult = p.wwMult;
+    s.competition = p.competition; s.peakSharePct = p.peakSharePct;
+    s.rampYears = p.rampYears; s.commercialLifeBase = p.commercialLifeBase; s.loeHaircutPct = p.loeHaircutPct;
+    s.dealUpfront_M = p.dealUpfront_M;
+    s.dealMilestones_M = p.dealMilestones_M != null ? p.dealMilestones_M : 0;
+    s.dealMilestoneRegPct = p.dealMilestoneRegPct != null ? p.dealMilestoneRegPct : 50;
+    s.dealSalesProb = p.dealSalesProb != null ? p.dealSalesProb : 70;
+    s.royalty = p.royalty != null ? p.royalty : 0;
+    s.dealCounterparty = p.dealCounterparty;
+    (p.flagsOn || []).forEach(fid => { if (s.flags[fid]) s.flags[fid].on = true; });
+    return s;
+  }
+  function loadPozdeutinurad() { return applyPreset('pozdeutinurad'); }
+  const STORAGE_KEY = 'biovalue.inputs.v4';
+  function loadStored() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY); if (!raw) return null;
+      const parsed = JSON.parse(raw); const d = defaultInputs();
+      const m = Object.assign({}, d, parsed);
+      m.epi = Object.assign({}, d.epi, parsed.epi || {});
+      m.posOverride = Object.assign({}, d.posOverride, parsed.posOverride || {});
+      m.phase = parsed.phase ? { duration: Object.assign({}, d.phase.duration, parsed.phase.duration), cost: Object.assign({}, d.phase.cost, parsed.phase.cost) } : d.phase;
+      m.flags = Object.assign({}, d.flags, parsed.flags || {});
+      m.subTabs = Object.assign({}, d.subTabs, parsed.subTabs || {});
+      return m;
+    } catch (e) { return null; }
+  }
+
+  let state = loadStored() || defaultInputs();
+  let scenarioChart = null;
+  let rampChart = null;
+
+  /* ──────────────────────────────────────────────────────────────
+     ENGINE
+  ────────────────────────────────────────────────────────────── */
+  function activeFlags(s) {
+    return FLAGS.filter(f => s.flags[f.id] && s.flags[f.id].on);
+  }
+  function flagMag(s, id) { return s.flags[id] && s.flags[id].on ? s.flags[id].mag : 0; }
+
+  function computeEffectivePoS(s) {
+    const taData = PoSTable[s.ta]; if (!taData) return null;
+    const biomarkerOn = !!(s.flags.biomarker && s.flags.biomarker.on);
+    const biomarkerMag = biomarkerOn ? s.flags.biomarker.mag : 0;
+    // Pass 1: baseline — interpolate between unselected and biomarker by magnitude
+    const baseline = {};
+    ['p1_2','p2_3','p3_nda','nda_app'].forEach(k => {
+      const u = taData.unselected[k]; const b = taData.biomarker[k];
+      baseline[k] = biomarkerOn ? (u + (b - u) * biomarkerMag) : u;
+    });
+
+    // Pass 2: marginal uplifts compounded on failure rate
+    const breakdown = {}; const effective = {};
+    ['p1_2','p2_3','p3_nda','nda_app'].forEach(k => {
+      const trail = [];
+      const baseP = taData.unselected[k];
+      let failProb = 1 - baseP;
+      let anyFlagAdjustment = false;
+      trail.push({ label: 'TA baseline (unselected)', value: baseP });
+      if (biomarkerOn) {
+        const newP = baseline[k]; failProb = 1 - newP;
+        trail.push({ label: 'Biomarker-selected' + (biomarkerMag !== 1 ? ' (' + biomarkerMag.toFixed(2) + '×)' : ''), value: newP, est: taData.biomarkerEst });
+        anyFlagAdjustment = true;
+      }
+      // Apply other flag uplifts
+      activeFlags(s).forEach(flag => {
+        if (flag.id === 'biomarker') return;
+        const mag = s.flags[flag.id].mag;
+        const reduce = flag.effects.posFailReduction && flag.effects.posFailReduction[k];
+        const increase = flag.effects.posFailIncrease && flag.effects.posFailIncrease[k];
+        if (reduce) {
+          const eff = reduce * mag;
+          failProb = failProb * (1 - eff);
+          trail.push({ label: flag.name + (mag !== 1 ? ' (' + mag.toFixed(2) + '×)' : ''), value: 1 - failProb });
+          anyFlagAdjustment = true;
+        }
+        if (increase) {
+          const eff = increase * mag;
+          failProb = Math.min(1, (1 - (1 - failProb) * (1 - eff)));
+          trail.push({ label: flag.name + ' (penalty)' + (mag !== 1 ? ' (' + mag.toFixed(2) + '×)' : ''), value: 1 - failProb });
+          anyFlagAdjustment = true;
+        }
+      });
+      let v = 1 - failProb;
+      // Manual override — takes precedence over flag math
+      const hasOverride = s.posOverride[k] != null;
+      if (hasOverride) {
+        v = s.posOverride[k];
+        trail.push({ label: 'Manual override', value: v });
+      }
+      // Cap only kicks in when a flag-driven adjustment (or override) pushed the value
+      // above the cap. Empirical baselines from ALPHA that legitimately exceed 90%
+      // (e.g. NDA→Approval at 91%) pass through unchanged.
+      if (anyFlagAdjustment || hasOverride) {
+        const effectiveCap = Math.max(baseP, CAP_POS_PER_TRANSITION);
+        if (v > effectiveCap) {
+          trail.push({ label: 'Capped at ' + (effectiveCap * 100).toFixed(0) + '%', value: effectiveCap });
+          v = effectiveCap;
+        }
+      }
+      effective[k] = v;
+      breakdown[k] = trail;
+    });
+    return { effective, breakdown, biomarkerEst: taData.biomarkerEst };
+  }
+
+  function computeEffectivePrice(s) {
+    const trail = [];
+    const wac = s.epi.wacPrice;
+    const gtn = s.gtn / 100;
+    let net = wac * (1 - gtn);
+    trail.push({ label: 'WAC price (gross)', value: wac });
+    trail.push({ label: 'After GTN (' + s.gtn + '%)', value: net });
+    let premPct = 0;
+    activeFlags(s).forEach(flag => {
+      const pp = flag.effects.pricePremiumPct;
+      if (!pp) return;
+      const mag = s.flags[flag.id].mag;
+      const contribution = pp * mag;
+      premPct += contribution;
+      trail.push({ label: flag.name + ' (' + (contribution >= 0 ? '+' : '') + contribution.toFixed(0) + '%)', delta: contribution });
+    });
+    const capped = Math.min(premPct, CAP_PRICE_PREMIUM_PCT);
+    if (premPct > CAP_PRICE_PREMIUM_PCT) {
+      trail.push({ label: 'Stacked premium capped at +50%', value: capped });
+    }
+    const finalPrice = net * (1 + capped / 100);
+    trail.push({ label: 'Effective net price', value: finalPrice, final: true });
+    return { price: finalPrice, premiumPct: capped, breakdown: trail };
+  }
+
+  function computeEffectiveLife(s) {
+    const trail = [];
+    let life = s.commercialLifeBase;
+    trail.push({ label: 'Base commercial life', value: life });
+    let delta = 0;
+    activeFlags(s).forEach(flag => {
+      const ld = flag.effects.lifeYearsDelta;
+      if (!ld) return;
+      const mag = s.flags[flag.id].mag;
+      const contribution = ld * mag;
+      delta += contribution;
+      trail.push({ label: flag.name + ' (' + (contribution >= 0 ? '+' : '') + contribution.toFixed(1) + 'y)', delta: contribution });
+    });
+    const positiveDelta = Math.max(0, delta);
+    const negativeDelta = Math.min(0, delta);
+    const cappedPositive = Math.min(positiveDelta, CAP_LIFE_YEARS_DELTA);
+    if (positiveDelta > CAP_LIFE_YEARS_DELTA) {
+      trail.push({ label: 'Positive additions capped at +5y', value: cappedPositive });
+    }
+    const finalLife = life + cappedPositive + negativeDelta;
+    trail.push({ label: 'Effective commercial life', value: Math.max(1, finalLife), final: true });
+    return { years: Math.max(1, finalLife), breakdown: trail };
+  }
+
+  function computeEffectiveRamp(s) {
+    let r = s.rampYears;
+    activeFlags(s).forEach(flag => {
+      const rd = flag.effects.rampYearsDelta;
+      if (rd) r += rd * s.flags[flag.id].mag;
+    });
+    return Math.max(1, r);
+  }
+
+  function computeRdCostMultiplier(s) {
+    let pct = 0;
+    activeFlags(s).forEach(flag => {
+      const rd = flag.effects.rdCostPctDelta;
+      if (rd) pct += rd * s.flags[flag.id].mag;
+    });
+    const capped = Math.min(pct, CAP_RD_COST_PCT_DELTA);
+    return 1 + capped / 100;
+  }
+
+  function computeEffectivePhaseDurations(s) {
+    const dur = Object.assign({}, s.phase.duration);
+    activeFlags(s).forEach(flag => {
+      const mag = s.flags[flag.id].mag;
+      if (flag.effects.ph2DurationPctDelta) dur['Phase II']  = Math.max(0.5, dur['Phase II']  * (1 + flag.effects.ph2DurationPctDelta * mag));
+      if (flag.effects.ph3DurationPctDelta) dur['Phase III'] = Math.max(0.5, dur['Phase III'] * (1 + flag.effects.ph3DurationPctDelta * mag));
+      if (flag.effects.ndaDurationPctDelta) dur['NDA/BLA']   = Math.max(0.25, dur['NDA/BLA'] * (1 + flag.effects.ndaDurationPctDelta * mag));
+    });
+    return dur;
+  }
+  function computeEffectivePhaseCosts(s) {
+    const cost = Object.assign({}, s.phase.cost);
+    const rdMult = computeRdCostMultiplier(s);
+    Object.keys(cost).forEach(k => { cost[k] = cost[k] * rdMult; });
+    activeFlags(s).forEach(flag => {
+      const mag = s.flags[flag.id].mag;
+      if (flag.effects.ph3CostPctDelta) cost['Phase III'] = Math.max(0, cost['Phase III'] * (1 + flag.effects.ph3CostPctDelta * mag));
+    });
+    return cost;
+  }
+
+  function epiPatients(epi) {
+    return epi.population * (epi.prevalence/100) * (epi.pctChronic/100) * (epi.pctTreated/100) * (epi.pctAddressable/100);
+  }
+  function addressablePoolWWNet_M(s) {
+    const priceInfo = computeEffectivePrice(s);
+    const patients = epiPatients(s.epi);
+    const usNet = patients * priceInfo.price / 1_000_000;
+    return { patients, priceInfo, usNet_M: usNet, wwNet_M: usNet * s.wwMult };
+  }
+  function effectiveShare(s) {
+    let share = s.peakSharePct / 100;
+    // shareBoostPct is interpreted MULTIPLICATIVELY (e.g. 25 = +25% relative boost,
+    // so 12% share × 1.25 = 15% share, not 12% + 25pp = 37%).
+    activeFlags(s).forEach(flag => {
+      const sb = flag.effects.shareBoostPct;
+      if (sb) share *= (1 + (sb / 100) * s.flags[flag.id].mag);
+    });
+    return Math.max(0.005, Math.min(1, share));
+  }
+  function peakRevenueWWNet_M(s, peakMult) {
+    const pool = addressablePoolWWNet_M(s);
+    const share = effectiveShare(s);
+    return pool.wwNet_M * share * (peakMult || 1);
+  }
+
+  function rNPVatStage(viewStage, s, peakMult) {
+    const posInfo = computeEffectivePoS(s);
+    if (!posInfo) return { rNPV: 0 };
+    const pos = posInfo.effective;
+    const r = s.wacc / 100;
+    const peak = peakRevenueWWNet_M(s, peakMult);
+    // Royalty no longer reduces Asset rNPV — it's handled as a Deal PV component on the Deal Analysis tab.
+    // Asset rNPV always represents the full standalone value (acquirer-owning-100% perspective).
+    const company = peak;
+
+    const phaseDur = computeEffectivePhaseDurations(s);
+    const phaseCost = computeEffectivePhaseCosts(s);
+
+    function transitionFrom(stage) {
+      if (stage === 'Preclinical') return PRECLIN_P1;
+      if (stage === 'Phase I')     return pos.p1_2;
+      if (stage === 'Phase II')    return pos.p2_3;
+      if (stage === 'Phase III')   return pos.p3_nda;
+      if (stage === 'NDA/BLA')     return pos.nda_app;
+      return 1;
+    }
+    function probReach(from, target) {
+      const fi = STAGES.indexOf(from); const ti = STAGES.indexOf(target);
+      if (ti <= fi) return 1;
+      let p = 1; for (let i = fi; i < ti; i++) p *= transitionFrom(STAGES[i]);
+      return p;
+    }
+
+    const yearsToStart = {}; let cum = 0; const vi = STAGES.indexOf(viewStage);
+    for (let i = vi; i < STAGES.length; i++) {
+      yearsToStart[STAGES[i]] = cum;
+      cum += (phaseDur[STAGES[i]] || 0);
+    }
+    const yearsToLaunch = yearsToStart['Approved'];
+
+    let rdCostPV = 0;
+    for (let i = vi; i < STAGES.indexOf('Approved'); i++) {
+      const stage = STAGES[i]; const c = phaseCost[stage] || 0;
+      if (c === 0) continue;
+      const mid = yearsToStart[stage] + (phaseDur[stage] || 0) / 2;
+      const p = probReach(viewStage, stage);
+      rdCostPV += (c * p) / Math.pow(1 + r, mid);
+    }
+
+    const launchProb = probReach(viewStage, 'Approved');
+    const lifeInfo = computeEffectiveLife(s);
+    const life = lifeInfo.years;
+    const ramp = computeEffectiveRamp(s);
+    const loeHair = 1 - s.loeHaircutPct / 100;
+    let commPV = 0;
+    for (let y = 0; y < life; y++) {
+      let frac = y < ramp ? (y + 1) / (ramp + 1) : 1.0;
+      if (y >= life - 2) frac *= loeHair;
+      const t = yearsToLaunch + y + 0.5;
+      commPV += (company * frac) / Math.pow(1 + r, t);
+    }
+    return { rNPV: launchProb * commPV - rdCostPV, rdCostPV, commPV: launchProb * commPV, launchProb, yearsToLaunch };
+  }
+
+  function runScenarios(s) {
+    const peakMults = { Bear: 0.7, Base: 1.0, Bull: 1.3 };
+    const out = {};
+    STAGES.forEach(stage => {
+      out[stage] = {};
+      for (const [sc, m] of Object.entries(peakMults)) out[stage][sc] = rNPVatStage(stage, s, m);
+    });
+    return out;
+  }
+
+  /* ──────────────────────────────────────────────────────────────
+     POPULATE STATIC UI
+  ────────────────────────────────────────────────────────────── */
+  function populateSelects() {
+    const taSel = document.getElementById('ta-select');
+    Object.keys(PoSTable).forEach(name => { const o = document.createElement('option'); o.value = name; o.textContent = name; taSel.appendChild(o); });
+    const stSel = document.getElementById('stage-select');
+    STAGES.slice(0, 5).forEach(name => { const o = document.createElement('option'); o.value = name; o.textContent = name; stSel.appendChild(o); });
+    const modSel = document.getElementById('modality-select');
+    MODALITIES.forEach(m => { const o = document.createElement('option'); o.value = m.name; o.textContent = m.name; modSel.appendChild(o); });
+    const compSel = document.getElementById('competition-select');
+    Object.entries(COMPETITION).forEach(([label, def]) => {
+      const o = document.createElement('option');
+      o.value = label;
+      o.textContent = label + ' — baseline ' + Math.round(def.peakShare * 100) + '%';
+      compSel.appendChild(o);
+    });
+    const presetSel = document.getElementById('preset-select');
+    if (presetSel) {
+      const blank = document.createElement('option'); blank.value = ''; blank.textContent = '— Choose a validated deal preset —';
+      presetSel.appendChild(blank);
+      Object.entries(DEAL_PRESETS).forEach(([key, p]) => {
+        const o = document.createElement('option'); o.value = key; o.textContent = p.label;
+        presetSel.appendChild(o);
+      });
+    }
+    const indSearch = document.getElementById('indication-options');
+    if (indSearch) {
+      Object.keys(INDICATION_LIBRARY).sort().forEach(name => {
+        const o = document.createElement('option'); o.value = name;
+        indSearch.appendChild(o);
+      });
+    }
+  }
+  function populateModalityTable() {
+    const tbody = document.getElementById('modality-table-body');
+    MODALITIES.forEach(m => {
+      const tr = document.createElement('tr');
+      tr.dataset.modality = m.name;
+      tr.innerHTML = '<td style="width:34%"><strong>' + m.name + '</strong></td><td>' + m.note + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+  function populateRoyalty() {
+    const body = document.getElementById('royalty-body');
+    ROYALTY_TABLE.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.dataset.ta = r.ta;
+      tr.innerHTML = '<td>' + r.ta + '</td>' +
+        '<td class="right" data-stage="Phase I">' + r.ph1 + '</td>' +
+        '<td class="right" data-stage="Phase II">' + r.ph2 + '</td>' +
+        '<td class="right" data-stage="Phase III">' + r.ph3 + '</td>' +
+        '<td class="right" data-stage="Approved">' + r.post + '</td>';
+      body.appendChild(tr);
+    });
+  }
+  function populateFlagsList() {
+    const list = document.getElementById('flag-list');
+    list.innerHTML = '';
+    const groups = {};
+    FLAGS.forEach(f => { (groups[f.category] = groups[f.category] || []).push(f); });
+    Object.keys(groups).forEach(category => {
+      const grp = document.createElement('div'); grp.className = 'flag-group';
+      grp.innerHTML = '<div class="flag-group-title">' + category + '</div>';
+      groups[category].forEach(f => {
+        const row = document.createElement('div'); row.className = 'flag-row'; row.dataset.flagId = f.id;
+        const evidenceBadge = f.evidence === 'high' ? '' : ' <span class="pill pill-conv">convention</span>';
+        // build effects label
+        const eff = f.effects; const effBits = [];
+        if (eff.biomarkerReplace) effBits.push('replaces baseline PoS with biomarker column');
+        if (eff.posFailReduction) {
+          Object.keys(eff.posFailReduction).forEach(k => effBits.push('−' + Math.round(eff.posFailReduction[k]*100) + '% fail ' + k.replace('p','Ph').replace('_','→').replace('nda','NDA').replace('app','Apr')));
+        }
+        if (eff.posFailIncrease) {
+          Object.keys(eff.posFailIncrease).forEach(k => effBits.push('+' + Math.round(eff.posFailIncrease[k]*100) + '% fail ' + k.replace('p','Ph').replace('_','→').replace('nda','NDA').replace('app','Apr')));
+        }
+        if (eff.pricePremiumPct) effBits.push((eff.pricePremiumPct >= 0 ? '+' : '') + eff.pricePremiumPct + '% price');
+        if (eff.lifeYearsDelta)  effBits.push((eff.lifeYearsDelta >= 0 ? '+' : '') + eff.lifeYearsDelta + 'y life');
+        if (eff.rampYearsDelta)  effBits.push((eff.rampYearsDelta >= 0 ? '+' : '') + eff.rampYearsDelta + 'y ramp');
+        if (eff.rdCostPctDelta)  effBits.push((eff.rdCostPctDelta >= 0 ? '+' : '') + eff.rdCostPctDelta + '% R&D cost');
+        if (eff.shareBoostPct)   effBits.push((eff.shareBoostPct >= 0 ? '+' : '') + eff.shareBoostPct + '% share');
+        if (eff.ph2DurationPctDelta) effBits.push((eff.ph2DurationPctDelta*100).toFixed(0) + '% Ph II dur');
+        if (eff.ph3DurationPctDelta) effBits.push((eff.ph3DurationPctDelta*100).toFixed(0) + '% Ph III dur');
+        if (eff.ph3CostPctDelta)     effBits.push((eff.ph3CostPctDelta*100).toFixed(0) + '% Ph III cost');
+        if (eff.ndaDurationPctDelta) effBits.push((eff.ndaDurationPctDelta*100).toFixed(0) + '% NDA dur');
+        row.innerHTML =
+          '<div class="flag-toggle" aria-hidden="true"></div>' +
+          '<div class="flag-meta"><span class="flag-name">' + f.name + evidenceBadge + '</span>' +
+          '<span class="flag-effects">' + (effBits.length ? effBits.join(' · ') : '—') + '</span></div>' +
+          '<div class="flag-magnitude" data-no-toggle>' +
+            '<input type="range" min="0" max="1.5" step="0.1" value="1" data-flag-mag="' + f.id + '" />' +
+            '<span class="val" data-flag-mag-show="' + f.id + '">1.0×</span>' +
+          '</div>';
+        row.setAttribute('role', 'checkbox');
+        row.setAttribute('tabindex', '0');
+        grp.appendChild(row);
+      });
+      list.appendChild(grp);
+    });
+  }
+
+  /* ──────────────────────────────────────────────────────────────
+     RENDER
+  ────────────────────────────────────────────────────────────── */
+  function syncSubTabsFromState() {
+    document.querySelectorAll('.sub-tab-card[data-sub-tab-group]').forEach(card => {
+      const group = card.dataset.subTabGroup;
+      const target = (state.subTabs && state.subTabs[group]) || defaultSubTabs()[group];
+      card.querySelectorAll('.sub-tab').forEach(b => b.classList.toggle('active', b.dataset.subTab === target));
+      card.querySelectorAll('.sub-tab-panel').forEach(p => p.classList.toggle('active', p.dataset.subTabPanel === target));
+    });
+  }
+  function syncInputsFromState() {
+    document.querySelectorAll('[data-key]').forEach(el => {
+      const key = el.dataset.key;
+      if (state[key] === undefined) return;
+      el.value = state[key];
+    });
+    document.querySelectorAll('[data-epi-key]').forEach(el => {
+      const k = el.dataset.epiKey; if (state.epi[k] === undefined) return; el.value = state.epi[k];
+    });
+    // Flags
+    FLAGS.forEach(f => {
+      const mr = document.querySelector('[data-flag-mag="' + f.id + '"]');
+      const ms = document.querySelector('[data-flag-mag-show="' + f.id + '"]');
+      const row = document.querySelector('.flag-row[data-flag-id="' + f.id + '"]');
+      if (row) row.setAttribute('aria-checked', !!(state.flags[f.id] && state.flags[f.id].on));
+      if (mr) mr.value = (state.flags[f.id] && state.flags[f.id].mag) || 1.0;
+      if (ms) ms.textContent = (((state.flags[f.id] && state.flags[f.id].mag) || 1.0).toFixed(1)) + '×';
+    });
+    syncSubTabsFromState();
+  }
+  function persist() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
+
+  function renderFlagListStyling() {
+    // Highlight active flags; disable mutually-exclusive others
+    const activeGroups = {};
+    FLAGS.forEach(f => { if (f.exclusiveGroup && state.flags[f.id] && state.flags[f.id].on) activeGroups[f.exclusiveGroup] = f.id; });
+    FLAGS.forEach(f => {
+      const row = document.querySelector('.flag-row[data-flag-id="' + f.id + '"]'); if (!row) return;
+      const isOn = state.flags[f.id] && state.flags[f.id].on;
+      row.classList.toggle('active', !!isOn);
+      const blockedByGroup = f.exclusiveGroup && activeGroups[f.exclusiveGroup] && activeGroups[f.exclusiveGroup] !== f.id;
+      row.classList.toggle('disabled', !!blockedByGroup);
+    });
+  }
+  function renderActiveEffectsSummary() {
+    const el = document.getElementById('active-effects-summary');
+    const af = activeFlags(state);
+    const posInfo = computeEffectivePoS(state);
+    const priceInfo = computeEffectivePrice(state);
+    const lifeInfo = computeEffectiveLife(state);
+    const ramp = computeEffectiveRamp(state);
+    const rdMult = computeRdCostMultiplier(state);
+
+    // Baseline = TA unselected PoS, gross WAC × (1-GTN), commercialLifeBase, rampYears, 1.0× R&D
+    const taData = PoSTable[state.ta];
+    const baselinePos = taData ? taData.unselected : { p1_2:0, p2_3:0, p3_nda:0, nda_app:0 };
+    const baselinePrice = state.epi.wacPrice * (1 - state.gtn/100);
+    const baselineLife = state.commercialLifeBase;
+    const baselineRamp = state.rampYears;
+
+    const activeBanner = af.length === 0
+      ? '<div class="info" style="margin-bottom:10px;"><div class="h">No flags active</div>Baseline values from MIT Project ALPHA shown below; effective values match baseline until you toggle a flag.</div>'
+      : '<div class="info" style="margin-bottom:10px;"><div class="h">' + af.length + ' flag' + (af.length===1?'':'s') + ' active</div>' +
+        af.map(f => '<span class="pill pill-active" style="margin: 2px 4px 2px 0;">' + f.name + (state.flags[f.id].mag !== 1 ? ' ' + state.flags[f.id].mag.toFixed(1) + '×' : '') + '</span>').join('') +
+        '</div>';
+
+    function row(label, baselineDisp, effectiveDisp, deltaPp, deltaPct, deltaAbs, unit) {
+      let deltaStr = '—'; let deltaCls = '';
+      if (deltaPp != null && Math.abs(deltaPp) > 0.05) {
+        deltaStr = (deltaPp >= 0 ? '+' : '') + deltaPp.toFixed(1) + 'pp';
+        deltaCls = deltaPp > 0 ? 'bull' : 'bear';
+      } else if (deltaPct != null && Math.abs(deltaPct) > 0.05) {
+        deltaStr = (deltaPct >= 0 ? '+' : '') + deltaPct.toFixed(1) + '%';
+        deltaCls = deltaPct > 0 ? 'bull' : 'bear';
+      } else if (deltaAbs != null && Math.abs(deltaAbs) > 0.01) {
+        deltaStr = (deltaAbs >= 0 ? '+' : '') + deltaAbs.toFixed(1) + (unit || '');
+        deltaCls = deltaAbs > 0 ? 'bull' : 'bear';
+      } else if (deltaPp != null || deltaPct != null || deltaAbs != null) {
+        deltaStr = '—';
+      }
+      return '<tr><td>' + label + '</td>' +
+        '<td class="right num" style="color:var(--muted);">' + baselineDisp + '</td>' +
+        '<td class="right num"><strong>' + effectiveDisp + '</strong></td>' +
+        '<td class="right num ' + deltaCls + '">' + deltaStr + '</td></tr>';
+    }
+
+    let html = activeBanner;
+    html += '<table class="data compact"><thead><tr><th>Driver</th><th class="right">Baseline</th><th class="right">Effective</th><th class="right">Δ</th></tr></thead><tbody>';
+    html += row('Ph I → II PoS',
+                fmtPct(baselinePos.p1_2), fmtPct(posInfo.effective.p1_2),
+                (posInfo.effective.p1_2 - baselinePos.p1_2) * 100);
+    html += row('Ph II → III PoS',
+                fmtPct(baselinePos.p2_3), fmtPct(posInfo.effective.p2_3),
+                (posInfo.effective.p2_3 - baselinePos.p2_3) * 100);
+    html += row('Ph III → NDA PoS',
+                fmtPct(baselinePos.p3_nda), fmtPct(posInfo.effective.p3_nda),
+                (posInfo.effective.p3_nda - baselinePos.p3_nda) * 100);
+    html += row('NDA → Approval PoS',
+                fmtPct(baselinePos.nda_app), fmtPct(posInfo.effective.nda_app),
+                (posInfo.effective.nda_app - baselinePos.nda_app) * 100);
+    html += row('Net price after premia',
+                '$' + Math.round(baselinePrice).toLocaleString(),
+                '$' + Math.round(priceInfo.price).toLocaleString(),
+                null,
+                baselinePrice > 0 ? ((priceInfo.price - baselinePrice) / baselinePrice) * 100 : null);
+    html += row('Commercial life',
+                baselineLife.toFixed(1) + ' yrs',
+                lifeInfo.years.toFixed(1) + ' yrs',
+                null, null,
+                lifeInfo.years - baselineLife, 'y');
+    html += row('Ramp to peak',
+                baselineRamp.toFixed(1) + ' yrs',
+                ramp.toFixed(1) + ' yrs',
+                null, null,
+                ramp - baselineRamp, 'y');
+    if (rdMult !== 1) {
+      html += '<tr><td>R&D cost multiplier</td>' +
+        '<td class="right num" style="color:var(--muted);">1.00×</td>' +
+        '<td class="right num"><strong>' + rdMult.toFixed(2) + '×</strong></td>' +
+        '<td class="right num ' + (rdMult > 1 ? 'bear' : 'bull') + '">' + ((rdMult - 1) * 100).toFixed(0) + '%</td></tr>';
+    }
+    html += '</tbody></table>';
+    el.innerHTML = html;
+  }
+  function renderTaTable() {
+    const body = document.getElementById('ta-table-body');
+    body.innerHTML = '';
+    Object.entries(PoSTable).forEach(([name, t]) => {
+      const tr = document.createElement('tr');
+      if (name === state.ta) tr.className = 'hl';
+      const estBadge = t.biomarkerEst ? ' <span class="pill pill-est">est.</span>' : '';
+      tr.innerHTML = '<td>' + name + estBadge + '</td>' +
+        '<td class="right">' + fmtPct0(t.unselected.p1_2) + '</td>' +
+        '<td class="right">' + fmtPct0(t.unselected.p2_3) + '</td>' +
+        '<td class="right">' + fmtPct0(t.unselected.p3_nda) + '</td>' +
+        '<td class="right">' + fmtPct0(t.unselected.nda_app) + '</td>' +
+        '<td class="right">' + fmtPct0(t.biomarker.p1_2) + '</td>' +
+        '<td class="right">' + fmtPct0(t.biomarker.p2_3) + '</td>' +
+        '<td class="right">' + fmtPct0(t.biomarker.p3_nda) + '</td>' +
+        '<td class="right">' + fmtPct0(t.biomarker.nda_app) + '</td>';
+      body.appendChild(tr);
+    });
+  }
+  function renderModalityHl() {
+    document.querySelectorAll('#modality-table-body tr').forEach(tr => tr.classList.toggle('hl', tr.dataset.modality === state.modality));
+  }
+  function renderTaRnpvTable() {
+    const body = document.getElementById('ta-rnpv-body'); body.innerHTML = '';
+    Object.entries(TA_RNPV_RANGES).forEach(([name, r]) => {
+      const tr = document.createElement('tr');
+      if (name === state.ta) tr.className = 'hl';
+      tr.innerHTML = '<td>' + name + '</td>' +
+        '<td class="right">$' + r.ph2[0] + 'M – ' + (r.ph2[1] >= 1000 ? '$' + (r.ph2[1]/1000).toFixed(1) + 'B' : '$' + r.ph2[1] + 'M') + '</td>' +
+        '<td class="right">$' + r.ph3[0] + 'M – ' + (r.ph3[1] >= 1000 ? '$' + (r.ph3[1]/1000).toFixed(1) + 'B' : '$' + r.ph3[1] + 'M') + '</td>';
+      body.appendChild(tr);
+    });
+  }
+  function renderCascade() {
+    const list = document.getElementById('cascade-list'); if (!list) return;
+    const pool = addressablePoolWWNet_M(state);
+    list.innerHTML =
+      step('Population', fmtNum(state.epi.population) + ' people') +
+      step('× Prevalence', fmtNum(pool.patients * 1/((state.epi.pctChronic/100)*(state.epi.pctTreated/100)*(state.epi.pctAddressable/100))) + ' patients', state.epi.prevalence + '%') +
+      step('× Chronic / refractory', fmtNum(pool.patients * 1/((state.epi.pctTreated/100)*(state.epi.pctAddressable/100))) + ' patients', state.epi.pctChronic + '%') +
+      step('× Diagnosed & treated', fmtNum(pool.patients * 1/(state.epi.pctAddressable/100)) + ' patients', state.epi.pctTreated + '%') +
+      step('× Addressable', fmtNum(pool.patients) + ' patients', state.epi.pctAddressable + '%') +
+      step('× Net price (post-premia)', '$' + (pool.usNet_M >= 1000 ? (pool.usNet_M/1000).toFixed(2) + 'B' : Math.round(pool.usNet_M) + 'M') + ' US net peak @ 100% share', '$' + Math.round(pool.priceInfo.price).toLocaleString()) +
+      step('× WW multiplier', '$' + (pool.wwNet_M >= 1000 ? (pool.wwNet_M/1000).toFixed(2) + 'B' : Math.round(pool.wwNet_M) + 'M') + ' WW net peak @ 100% share', state.wwMult + '×');
+    document.getElementById('cascade-final').textContent = fmtM(pool.wwNet_M);
+
+    // Price breakdown
+    const pb = document.getElementById('price-breakdown');
+    let pbHtml = '<div class="label" style="margin-bottom:8px;">Price breakdown</div>';
+    pool.priceInfo.breakdown.forEach(b => {
+      pbHtml += '<div class="breadcrumb-row' + (b.final ? ' final' : '') + '">' +
+        '<span class="lbl">' + b.label + '</span>' +
+        '<span class="desc"></span>' +
+        '<span class="delta">' + (b.value != null ? '$' + Math.round(b.value).toLocaleString() : '') + '</span></div>';
+    });
+    pb.innerHTML = pbHtml;
+
+    function step(name, value, sub) {
+      return '<div class="cascade-step"><div class="nm">' + name + (sub ? '<span class="sub">' + sub + '</span>' : '') + '</div><div class="num-out">' + value + '</div></div>';
+    }
+  }
+  function renderPeakPosition() {
+    const el = document.getElementById('peak-position'); if (!el) return;
+    const rng = TA_RNPV_RANGES[state.ta]; if (!rng) { el.innerHTML = '—'; return; }
+    const baseRnpv = rNPVatStage(state.currentStage, state, 1.0).rNPV;
+    const stageKey = state.currentStage === 'Phase II' ? 'ph2' : (state.currentStage === 'Phase III' ? 'ph3' : null);
+    const range = stageKey ? rng[stageKey] : null;
+    let html = '';
+    if (range) {
+      const lo = range[0], hi = range[1];
+      let pos = (baseRnpv - lo) / (hi - lo); pos = Math.max(0, Math.min(1, pos));
+      const inBand = baseRnpv >= lo && baseRnpv <= hi;
+      html += '<div class="label">Your Base rNPV at ' + state.currentStage + '</div>';
+      html += '<div style="font-size: 22px; font-weight: 800; margin: 2px 0 8px; font-variant-numeric: tabular-nums;">' + fmtM(baseRnpv) + '</div>';
+      html += '<div class="range-bar"><div class="pin" style="left:' + (pos * 100) + '%;"></div>' +
+        '<div class="label-cur" style="left:' + (pos * 100) + '%;">' + fmtM(baseRnpv) + '</div>' +
+        '<div class="label-left">$' + lo + 'M</div>' +
+        '<div class="label-right">$' + (hi >= 1000 ? (hi/1000).toFixed(1) + 'B' : hi + 'M') + '</div></div>';
+      html += '<div style="margin-top: 24px;" class="info"><div class="h">' + (inBand ? 'Within published TA range' : (baseRnpv < lo ? 'Below TA range — peak assumption may be conservative, or PoS low' : 'Above TA range — peak may be aggressive, or asset has differentiation premium')) + '</div>' +
+        'Published ' + state.currentStage + ' rNPV range for ' + state.ta + ': $' + lo + 'M – $' + (hi >= 1000 ? (hi/1000).toFixed(1) + 'B' : hi + 'M') + '.</div>';
+    } else {
+      html += '<div class="info">TA peak-rNPV range is published for Phase II / Phase III only. Switch to one of those stages to see comparison.</div>';
+    }
+    el.innerHTML = html;
+  }
+  function renderPhaseTable() {
+    const body = document.getElementById('phase-table-body'); body.innerHTML = '';
+    const effDur = computeEffectivePhaseDurations(state);
+    const effCost = computeEffectivePhaseCosts(state);
+    Object.keys(DEFAULT_PHASE_DURATION).forEach(stage => {
+      const tr = document.createElement('tr');
+      if (stage === state.currentStage) tr.className = 'current';
+      const userDur = state.phase.duration[stage]; const userCost = state.phase.cost[stage];
+      const adjustedDur = effDur[stage]; const adjustedCost = effCost[stage];
+      const durDiff = Math.abs(adjustedDur - userDur) > 0.05;
+      const costDiff = Math.abs(adjustedCost - userCost) > 0.5;
+      tr.innerHTML = '<td><strong>' + stage + '</strong></td>' +
+        '<td class="right"><input type="number" data-phase-dur="' + stage + '" value="' + userDur + '" step="0.5" min="0.25" style="width:80px;text-align:right;" />' +
+          (durDiff ? '<div style="font-size:10px;color:var(--brand-700);margin-top:2px;">→ ' + adjustedDur.toFixed(1) + 'y (flags)</div>' : '') + '</td>' +
+        '<td class="right"><input type="number" data-phase-cost="' + stage + '" value="' + userCost + '" step="5" min="0" style="width:80px;text-align:right;" />' +
+          (costDiff ? '<div style="font-size:10px;color:var(--brand-700);margin-top:2px;">→ $' + Math.round(adjustedCost) + 'M (flags)</div>' : '') + '</td>';
+      body.appendChild(tr);
+    });
+  }
+  function renderPosOverrideTable() {
+    const body = document.getElementById('pos-override-body'); body.innerHTML = '';
+    const info = computeEffectivePoS(state);
+    if (!info) return;
+    const transitions = [['p1_2','Ph I → II'],['p2_3','Ph II → III'],['p3_nda','Ph III → NDA'],['nda_app','NDA → Approval']];
+    transitions.forEach(([k, label]) => {
+      const eff = info.effective[k];
+      const over = state.posOverride[k];
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td><strong>' + label + '</strong></td>' +
+        '<td class="right num">' + fmtPct(eff) + '</td>' +
+        '<td><input type="number" data-pos-over="' + k + '" value="' + (over != null ? Math.round(over*100) : '') + '" placeholder="—" step="1" min="0" max="99" style="width:70px;text-align:right;" /> %</td>';
+      body.appendChild(tr);
+    });
+  }
+  function renderPosBreakdown() {
+    const el = document.getElementById('pos-breakdown-list'); if (!el) return;
+    const info = computeEffectivePoS(state); if (!info) { el.innerHTML = '—'; return; }
+    const transitions = [['p1_2','Ph I → II'],['p2_3','Ph II → III'],['p3_nda','Ph III → NDA'],['nda_app','NDA → Approval']];
+    let html = '';
+    transitions.forEach(([k, label]) => {
+      html += '<div class="phase-breakdown"><h4>' + label + '</h4>';
+      info.breakdown[k].forEach((row, i, arr) => {
+        const isFinal = i === arr.length - 1;
+        const prevVal = i > 0 ? arr[i-1].value : null;
+        const delta = (prevVal != null && row.value != null) ? (row.value - prevVal) : null;
+        const deltaCls = delta == null ? '' : (delta > 0 ? 'add' : (delta < 0 ? 'sub' : ''));
+        const deltaStr = delta == null ? '' : ((delta >= 0 ? '+' : '') + (delta * 100).toFixed(1) + 'pp');
+        html += '<div class="breadcrumb-row' + (isFinal ? ' final' : '') + '">' +
+          '<span class="lbl">' + row.label + (row.est ? ' <span class="pill pill-est">est.</span>' : '') + '</span>' +
+          '<span class="desc"></span>' +
+          '<span class="delta ' + deltaCls + '">' + (row.value != null ? fmtPct(row.value) : '') + (deltaStr && !isFinal ? ' (' + deltaStr + ')' : '') + '</span></div>';
+      });
+      html += '</div>';
+    });
+    el.innerHTML = html;
+  }
+  function renderTimeline() {
+    const el = document.getElementById('timeline'); el.innerHTML = '';
+    const effDur = computeEffectivePhaseDurations(state);
+    const effCost = computeEffectivePhaseCosts(state);
+    ['Phase I','Phase II','Phase III','NDA/BLA','Approved'].forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'step' + (s === state.currentStage ? ' current' : '');
+      const yrs = effDur[s]; const cost = effCost[s];
+      div.innerHTML = '<div class="nm">' + s + '</div><div class="yrs">' + (yrs ? yrs.toFixed(1) + 'y' : '—') + '</div><div class="cost">' + (cost ? '$' + Math.round(cost) + 'M' : 'launch') + '</div>';
+      el.appendChild(div);
+    });
+  }
+  function renderLoaTable() {
+    const tbody = document.querySelector('#loa-table tbody'); if (!tbody) return; tbody.innerHTML = '';
+    const info = computeEffectivePoS(state); if (!info) return;
+    const pos = info.effective;
+    const phaseDur = computeEffectivePhaseDurations(state);
+    function transitionFrom(stage) {
+      if (stage === 'Preclinical') return PRECLIN_P1;
+      if (stage === 'Phase I')     return pos.p1_2;
+      if (stage === 'Phase II')    return pos.p2_3;
+      if (stage === 'Phase III')   return pos.p3_nda;
+      if (stage === 'NDA/BLA')     return pos.nda_app;
+      return 1;
+    }
+    function probReach(from, target) {
+      const fi = STAGES.indexOf(from); const ti = STAGES.indexOf(target);
+      if (ti <= fi) return 1;
+      let p = 1; for (let i = fi; i < ti; i++) p *= transitionFrom(STAGES[i]); return p;
+    }
+    STAGES.slice(0,5).forEach(s => {
+      const p = probReach(s, 'Approved');
+      let yrs = 0; const idx = STAGES.indexOf(s);
+      for (let i = idx; i < STAGES.indexOf('Approved'); i++) yrs += (phaseDur[STAGES[i]] || 0);
+      const tr = document.createElement('tr');
+      if (s === state.currentStage) tr.className = 'current';
+      tr.innerHTML = '<td>' + s + '</td>' +
+        '<td class="right num">' + fmtPct(p) + '</td>' +
+        '<td class="right num">' + yrs.toFixed(1) + ' yrs</td>';
+      tbody.appendChild(tr);
+    });
+  }
+  function renderCommercialBreadcrumb() {
+    const el = document.getElementById('life-breadcrumb'); if (!el) return;
+    const lifeInfo = computeEffectiveLife(state);
+    if (lifeInfo.breakdown.length <= 2 && !activeFlags(state).some(f => f.effects.lifeYearsDelta)) {
+      el.innerHTML = '';
+      return;
+    }
+    let html = '<div class="label" style="margin-bottom:8px;">Life adjustments from flags</div>';
+    lifeInfo.breakdown.forEach((b, i, arr) => {
+      const isFinal = i === arr.length - 1;
+      html += '<div class="breadcrumb-row' + (isFinal ? ' final' : '') + '">' +
+        '<span class="lbl">' + b.label + '</span><span class="desc"></span>' +
+        '<span class="delta">' + (b.value != null ? b.value.toFixed(1) + 'y' : (b.delta != null ? (b.delta>=0?'+':'') + b.delta.toFixed(1) + 'y' : '')) + '</span></div>';
+    });
+    el.innerHTML = html;
+  }
+  function renderWaccHl() {
+    document.querySelectorAll('#wacc-table tbody tr').forEach(tr => {
+      const r = tr.dataset.waccRange.split('-').map(parseFloat);
+      const cur = state.wacc;
+      const inRange = (r[0] === r[1]) ? Math.abs(cur - r[0]) < 0.5 : (cur >= r[0] && cur <= r[1]);
+      tr.classList.toggle('hl', inRange);
+    });
+  }
+  function renderRoyaltyHl() {
+    document.querySelectorAll('#royalty-body tr').forEach(tr => {
+      tr.classList.toggle('hl', tr.dataset.ta === state.ta);
+      tr.querySelectorAll('td[data-stage]').forEach(td => {
+        td.classList.toggle('cell-hl', tr.dataset.ta === state.ta && td.dataset.stage === state.currentStage);
+      });
+    });
+  }
+  function renderShareDefaultHint() {
+    const comp = COMPETITION[state.competition];
+    const resetBtn = document.getElementById('reset-share-btn');
+    if (!comp || !resetBtn) return;
+    const defPct = Math.round(comp.peakShare * 100);
+    const curPct = Math.round(state.peakSharePct);
+    resetBtn.disabled = (curPct === defPct);
+  }
+  function renderRampArchetypeHl() {
+    document.querySelectorAll('#ramp-archetype-body tr').forEach(tr => {
+      const r = parseFloat(tr.dataset.ramp);
+      tr.classList.toggle('hl', Math.abs(r - state.rampYears) <= 1);
+    });
+  }
+  function renderRampChart() {
+    const canvas = document.getElementById('ramp-chart'); if (!canvas || typeof Chart === 'undefined') return;
+    const years = [1,2,3,4,5,6,7,8,9,10];
+    function buildCurve(r) { return years.map(y => Math.min(1, y / (r + 1)) * 100); }
+    const cfg = {
+      type: 'line',
+      data: {
+        labels: years.map(y => 'Y' + y),
+        datasets: [
+          { label: 'Specialty (3y)', data: buildCurve(3), borderColor: 'rgba(148,163,184,0.7)', borderWidth: 1.5, fill: false, pointRadius: 0, borderDash: [4,4] },
+          { label: 'Standard (5y)',  data: buildCurve(5), borderColor: 'rgba(148,163,184,0.7)', borderWidth: 1.5, fill: false, pointRadius: 0, borderDash: [4,4] },
+          { label: 'PC chronic (7y)',data: buildCurve(7), borderColor: 'rgba(148,163,184,0.7)', borderWidth: 1.5, fill: false, pointRadius: 0, borderDash: [4,4] },
+          { label: 'Your ramp (' + state.rampYears + 'y)', data: buildCurve(state.rampYears), borderColor: 'rgba(37,99,235,1)', borderWidth: 2.5, fill: false, pointRadius: 3, pointBackgroundColor: 'rgba(37,99,235,1)' },
+        ],
+      },
+      options: { responsive: true, maintainAspectRatio: false, resizeDelay: 100, animation: false,
+        scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(15,23,42,0.06)' } }, x: { grid: { display: false } } },
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, boxHeight: 12, font: { size: 11 } } } }, },
+    };
+    try { if (rampChart) { rampChart.data = cfg.data; rampChart.update(); } else { rampChart = new Chart(canvas.getContext('2d'), cfg); } } catch (e) { console.error(e); }
+  }
+  function renderSummary() {
+    document.querySelector('[data-show="wacc"]').textContent = state.wacc;
+    document.querySelector('[data-show="gtn"]').textContent = state.gtn;
+    document.querySelector('[data-show="royalty"]').textContent = state.royalty;
+    document.querySelector('[data-show="peakSharePct"]').textContent = state.peakSharePct;
+    document.querySelector('[data-show="loeHaircutPct"]').textContent = state.loeHaircutPct;
+
+    const scenarios = runScenarios(state); const cur = state.currentStage;
+    const baseCur = scenarios[cur].Base;
+    document.querySelector('[data-show="headline-rnpv"]').textContent = fmtM(baseCur.rNPV);
+    document.querySelector('[data-show="headline-sub"]').textContent = state.assetName + ' · ' + state.ta + ' · ' + cur;
+    document.querySelector('[data-show="headline-loa"]').textContent = fmtPct(baseCur.launchProb);
+    document.querySelector('[data-show="headline-yr"]').textContent = baseCur.yearsToLaunch.toFixed(1);
+    document.querySelector('[data-show="headline-rd"]').textContent = fmtM(baseCur.rdCostPV);
+    document.querySelector('[data-show="current-stage-name"]').textContent = cur;
+
+    const mt = document.querySelector('#milestone-table tbody'); mt.innerHTML = '';
+    STAGES.slice(0,5).forEach(s => {
+      const sc = scenarios[s]; const isCur = s === cur;
+      const tr = document.createElement('tr');
+      if (isCur) tr.className = 'current';
+      tr.innerHTML = '<td><strong>' + s + '</strong>' + (isCur ? ' <span class="pill pill-current" style="margin-left:6px;">current</span>' : '') + '</td>' +
+        '<td>' + fmtPct(sc.Base.launchProb) + '</td>' +
+        '<td class="right bear">' + fmtM(sc.Bear.rNPV) + '</td>' +
+        '<td class="right base">' + fmtM(sc.Base.rNPV) + '</td>' +
+        '<td class="right bull">' + fmtM(sc.Bull.rNPV) + '</td>';
+      mt.appendChild(tr);
+    });
+
+    const stBody = document.querySelector('#sensitivity-table tbody'); stBody.innerHTML = '';
+    [8,9,10,11,12,14].forEach(w => {
+      const cells = [0.7,1.0,1.3].map(m => rNPVatStage(cur, Object.assign({}, state, { wacc: w }), m).rNPV);
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td><strong>' + w + '%</strong></td>' +
+        '<td class="right">' + fmtM(cells[0]) + '</td>' +
+        '<td class="right base">' + fmtM(cells[1]) + '</td>' +
+        '<td class="right">' + fmtM(cells[2]) + '</td>';
+      stBody.appendChild(tr);
+    });
+
+    drawScenarioChart(scenarios);
+  }
+  function drawScenarioChart(scenarios) {
+    const canvas = document.getElementById('scenario-chart'); if (!canvas) return;
+    if (typeof Chart === 'undefined') { const c = canvas.getContext('2d'); c.font='14px sans-serif'; c.fillStyle='#64748b'; c.fillText('Chart library unavailable.', 20, 40); return; }
+    const labels = STAGES.slice(0,5);
+    const datasets = ['Bear','Base','Bull'].map((sc,i) => ({
+      label: sc, data: labels.map(s => Math.max(0, scenarios[s][sc].rNPV)),
+      backgroundColor: ['rgba(185,28,28,0.85)','rgba(37,99,235,0.85)','rgba(4,120,87,0.85)'][i], borderRadius: 6,
+    }));
+    const cfg = { type: 'bar', data: { labels, datasets }, options: {
+      responsive: true, maintainAspectRatio: false, resizeDelay: 100, animation: false,
+      scales: { y: { ticks: { callback: v => v >= 1000 ? '$' + (v/1000).toFixed(1) + 'B' : '$' + v + 'M' }, grid: { color: 'rgba(15,23,42,0.06)' } }, x: { grid: { display: false } } },
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, boxHeight: 12 } }, tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y >= 1000 ? '$' + (ctx.parsed.y/1000).toFixed(2) + 'B' : '$' + Math.round(ctx.parsed.y) + 'M') } } },
+    } };
+    try { if (scenarioChart) { scenarioChart.data = cfg.data; scenarioChart.update(); } else { scenarioChart = new Chart(canvas.getContext('2d'), cfg); } } catch (e) { console.error(e); }
+  }
+
+  /* ──────────────────────────────────────────────────────────────
+     ACTIVE PRESET BANNER
+  ────────────────────────────────────────────────────────────── */
+  function renderPresetBanner() {
+    const banner = document.getElementById('preset-banner');
+    if (!banner) return;
+    const key = state.activePresetKey;
+    if (key && DEAL_PRESETS[key]) {
+      const p = DEAL_PRESETS[key];
+      banner.style.display = '';
+      // Strip parenthetical phase/indication from label since the summary line carries that info
+      const cleanLabel = p.label.replace(/\s*\([^)]+\)\s*$/, '');
+      const nm = document.querySelector('[data-show="pb-name"]');
+      const dt = document.querySelector('[data-show="pb-detail"]');
+      if (nm) nm.textContent = cleanLabel;
+      if (dt) dt.innerHTML = p.summary || '—';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  /* ──────────────────────────────────────────────────────────────
+     DEAL ANALYSIS — Asset rNPV / Commercial-adjusted rNPV (lower bound) / Deal PV
+     Fixed lower-bound math: WACC=14%, peak×0.60, commercial PoS×0.90
+  ────────────────────────────────────────────────────────────── */
+  const COMM_ADJ_WACC = 14.0;
+  const COMM_ADJ_PEAK_RETAIN = 0.60;   // peak haircut 40%
+  const COMM_ADJ_COMM_POS = 0.85;      // commercial PoS post-approval (15% chance approved drug fails commercially)
+
+  function commercialAdjustedRnpv(s) {
+    // Re-run rNPV with fixed WACC=14% and peak × 0.60.
+    // NOTE: rNPVatStage signature is (viewStage, s, peakMult) — peakMult is the 3rd positional argument.
+    const adjState = Object.assign({}, s, { wacc: COMM_ADJ_WACC });
+    const res = rNPVatStage(s.currentStage, adjState, COMM_ADJ_PEAK_RETAIN);
+    // Apply commercial PoS post-approval to the probability-weighted commercial PV.
+    // res.commPV is already launchProb × commPV; multiply by COMM_ADJ_COMM_POS.
+    return res.commPV * COMM_ADJ_COMM_POS - res.rdCostPV;
+  }
+
+  function renderDealTarget() {
+    const regEl = document.querySelector('[data-show="dealMilestoneRegPct"]');
+    const probEl = document.querySelector('[data-show="dealSalesProb"]');
+    if (regEl) regEl.textContent = state.dealMilestoneRegPct;
+    if (probEl) probEl.textContent = state.dealSalesProb;
+
+    // Asset rNPV (model output, no adjustments) — peakMult=1.0 as 3rd positional arg
+    const rnpvInfo = rNPVatStage(state.currentStage, state, 1.0);
+    const rnpv = rnpvInfo.rNPV;
+    const launchProb = rnpvInfo.launchProb;
+    const yearsToLaunch = rnpvInfo.yearsToLaunch;
+
+    // Commercial-adjusted rNPV (fixed lower bound)
+    const commAdj = commercialAdjustedRnpv(state);
+
+    // Deal PV from structure inputs
+    const upfront = state.dealUpfront_M || 0;
+    const totalMilestones = state.dealMilestones_M || 0;
+    const regPct = (state.dealMilestoneRegPct || 0) / 100;
+    const salesProb = (state.dealSalesProb || 70) / 100;
+    const regPool = totalMilestones * regPct;
+    const salesPool = totalMilestones * (1 - regPct);
+    const r = state.wacc / 100;
+    const regPV = launchProb > 0 ? (regPool * launchProb / Math.pow(1 + r, yearsToLaunch)) : 0;
+    const salesPV = launchProb > 0 ? (salesPool * launchProb * salesProb / Math.pow(1 + r, yearsToLaunch + 4)) : 0;
+    // Royalty stream PV — for licensing deals where the acquirer pays the licensor (acquiree) a royalty on net sales.
+    // Same risk-adjustment as the rNPV commercial PV: royalty% × launchProb × commPV (already probability-weighted from rnpvInfo).
+    const royaltyRate = (state.royalty || 0) / 100;
+    const royaltyPV = royaltyRate > 0 ? rnpvInfo.commPV * royaltyRate : 0;
+    const dealPV = upfront + regPV + salesPV + royaltyPV;
+    const nominalDeal = upfront + totalMilestones;
+    const pctOfRnpv = rnpv > 0 ? (dealPV / rnpv) * 100 : 0;
+    const commAdjPct = rnpv > 0 ? (commAdj / rnpv) * 100 : 0;
+    // Position in range: 0 = at lower bound, 1 = at rNPV
+    let posInRange = null;
+    if (rnpv > commAdj && rnpv > 0) {
+      posInRange = (dealPV - commAdj) / (rnpv - commAdj);
+    }
+
+    // Headline values
+    const setText = (sel, txt) => { const el = document.querySelector(sel); if (el) el.textContent = txt; };
+    setText('[data-show="dt-rnpv"]',  fmtM(rnpv));
+    setText('[data-show="dt-lower"]', fmtM(commAdj));
+    setText('[data-show="dt-pv"]',    fmtM(dealPV));
+    setText('[data-show="dt-nominal"]', fmtM(nominalDeal));
+    setText('[data-show="dt-pct"]',   pctOfRnpv.toFixed(0) + '%');
+    setText('[data-show="dt-range-pct"]', commAdjPct.toFixed(0) + '–100%');
+
+    // Position summary
+    const posEl = document.querySelector('[data-show="dt-position-summary"]');
+    if (posEl) {
+      if (dealPV === 0) {
+        posEl.textContent = 'Enter deal structure (upfront + milestones) to position the deal in the range.';
+      } else if (posInRange == null) {
+        posEl.textContent = '—';
+      } else {
+        const posPct = posInRange * 100;
+        let txt;
+        if (posInRange < 0) txt = 'Deal PV sits <strong>below the commercial-adjusted lower bound</strong> — unusually aggressive risk-sharing or model overstates value.';
+        else if (posInRange > 1) txt = 'Deal PV sits <strong>above Asset rNPV</strong> — deal includes premium beyond standalone (platform / strategic / scarcity).';
+        else if (posInRange < 0.25) txt = 'Deal PV sits near the <strong>lower bound</strong> (' + posPct.toFixed(0) + '% of the range) — heavy risk-sharing.';
+        else if (posInRange < 0.75) txt = 'Deal PV sits in the <strong>middle</strong> of the range (' + posPct.toFixed(0) + '%) — typical risk-sharing.';
+        else txt = 'Deal PV sits near <strong>Asset rNPV</strong> (' + posPct.toFixed(0) + '% of the range) — light risk-sharing, close to standalone value.';
+        posEl.innerHTML = txt;
+      }
+    }
+
+    // Range visualization
+    const rv = document.getElementById('dt-range-visual');
+    if (rv) {
+      if (rnpv > 0) {
+        const lowVal = commAdj;
+        const highVal = rnpv;
+        let pinPct = null;
+        let belowBound = false;
+        let aboveBound = false;
+        if (dealPV > 0) {
+          if (dealPV < lowVal) { pinPct = 0; belowBound = true; }
+          else if (dealPV > highVal) { pinPct = 100; aboveBound = true; }
+          else pinPct = ((dealPV - lowVal) / (highVal - lowVal)) * 100;
+        }
+        const labelEdgeClass = pinPct === 0 ? ' at-left' : (pinPct === 100 ? ' at-right' : '');
+        const labelPrefix = belowBound ? 'Below: Deal PV ' : (aboveBound ? 'Above: Deal PV ' : 'Deal PV ');
+
+        let html = '<div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Deal PV position within [Commercial-adjusted, Asset rNPV]</div>';
+        html += '<div class="range-bar">';
+        if (pinPct != null) {
+          html += '<div class="pin" style="left:' + pinPct + '%;"></div>';
+          html += '<div class="label-cur' + labelEdgeClass + '" style="left:' + pinPct + '%;">' + labelPrefix + fmtM(dealPV) + '</div>';
+        }
+        html += '<div class="label-left">' + fmtM(lowVal) + '<br><span style="font-size:10px;">Comm-adj</span></div>';
+        html += '<div class="label-right">' + fmtM(highVal) + '<br><span style="font-size:10px;">Asset rNPV</span></div>';
+        html += '</div>';
+        html += '<div style="height: 50px;"></div>';
+        // Stats below the bar
+        html += '<table class="data compact" style="margin-top:32px;"><tbody>';
+        html += '<tr><td>Asset rNPV</td><td class="right num"><strong>' + fmtM(rnpv) + '</strong></td><td class="right" style="font-size:11px;color:var(--muted);">100%</td></tr>';
+        html += '<tr><td>Commercial-adjusted (lower bound)</td><td class="right num"><strong>' + fmtM(commAdj) + '</strong></td><td class="right" style="font-size:11px;color:var(--muted);">' + commAdjPct.toFixed(0) + '%</td></tr>';
+        if (dealPV > 0) {
+          html += '<tr><td>Deal PV (from structure)</td><td class="right num"><strong>' + fmtM(dealPV) + '</strong></td><td class="right" style="font-size:11px;color:var(--muted);">' + pctOfRnpv.toFixed(0) + '%</td></tr>';
+          html += '<tr><td>Deal nominal (upfront + milestones face)</td><td class="right num">' + fmtM(nominalDeal) + '</td><td class="right">—</td></tr>';
+        }
+        html += '</tbody></table>';
+        rv.innerHTML = html;
+      } else {
+        rv.innerHTML = '<div class="info">Asset rNPV not computed yet. Set asset inputs in earlier tabs.</div>';
+      }
+    }
+
+    // Waterfall
+    const wf = document.getElementById('dt-waterfall-list');
+    if (wf) {
+      function row(label, value, note, bold) {
+        return '<div class="breadcrumb-row' + (bold ? ' final' : '') + '">' +
+          '<span class="lbl">' + label + '</span>' +
+          '<span class="desc" style="font-size:11px;color:var(--muted);">' + (note || '') + '</span>' +
+          '<span class="delta" style="' + (bold ? 'font-weight:800;color:var(--brand-700);' : '') + '">' + fmtM(value) + '</span></div>';
+      }
+      let html = '';
+      // Asset rNPV → Commercial-adjusted
+      html += '<div class="label" style="margin-bottom:6px;">Asset rNPV → Commercial-adjusted (lower bound)</div>';
+      html += row('Asset rNPV', rnpv, 'WACC ' + state.wacc + '%, full peak, full launch prob');
+      html += row('Commercial-adjusted rNPV', commAdj, 'WACC 14%, peak×0.60, commPoS×0.85', true);
+      html += '<div style="height: 18px;"></div>';
+      // Deal PV waterfall
+      html += '<div class="label" style="margin-bottom:6px;">Deal structure → Deal PV</div>';
+      html += row('Upfront cash', upfront, 'certain payment');
+      if (regPool > 0) {
+        html += row('Regulatory milestones (nominal)', regPool, '');
+        html += row('  → risk-adjusted PV', regPV, 'P=' + (launchProb*100).toFixed(0) + '% × discount over ' + yearsToLaunch.toFixed(1) + 'y');
+      }
+      if (salesPool > 0) {
+        html += row('Sales-based milestones (nominal)', salesPool, '');
+        html += row('  → risk-adjusted PV', salesPV, 'P=' + (launchProb*salesProb*100).toFixed(0) + '% × discount over ' + (yearsToLaunch+4).toFixed(1) + 'y');
+      }
+      // Royalty stream PV — always shown so deal structure is fully visible (=$0 for acquisitions).
+      const royaltyNote = (state.royalty > 0)
+        ? state.royalty.toFixed(1) + '% × launchProb × commercial PV (licensor receives)'
+        : '0% — full acquisition, no royalty paid to licensor';
+      html += row('Royalty stream PV', royaltyPV, royaltyNote);
+      html += row('Deal PV (total)', dealPV, '', true);
+      wf.innerHTML = html;
+    }
+  }
+
+  function render() {
+    renderFlagListStyling();
+    renderActiveEffectsSummary();
+    renderTaTable();
+    renderModalityHl();
+    renderCascade();
+    renderTaRnpvTable();
+    renderPeakPosition();
+    renderPhaseTable();
+    renderPosOverrideTable();
+    renderPosBreakdown();
+    renderTimeline();
+    renderLoaTable();
+    renderShareDefaultHint();
+    renderCommercialBreadcrumb();
+    renderRampArchetypeHl();
+    renderRampChart();
+    renderWaccHl();
+    renderRoyaltyHl();
+    renderSummary();
+    renderDealTarget();
+    renderPresetBanner();
+  }
+
+  /* ──────────────────────────────────────────────────────────────
+     EVENT BINDINGS
+  ────────────────────────────────────────────────────────────── */
+  function bindHandlers() {
+    // Primary tabs
+    document.querySelectorAll('.tab').forEach(b => {
+      b.addEventListener('click', () => {
+        const t = b.dataset.tab;
+        document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x.dataset.tab === t));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.tabPanel === t));
+        if (t === 'summary') drawScenarioChart(runScenarios(state));
+        if (t === 'commercial') renderRampChart();
+      });
+    });
+    // Sub-tabs
+    document.querySelectorAll('.sub-tab-card[data-sub-tab-group]').forEach(card => {
+      const group = card.dataset.subTabGroup;
+      card.querySelectorAll('.sub-tab').forEach(b => {
+        b.addEventListener('click', () => {
+          const target = b.dataset.subTab;
+          state.subTabs[group] = target;
+          card.querySelectorAll('.sub-tab').forEach(x => x.classList.toggle('active', x.dataset.subTab === target));
+          card.querySelectorAll('.sub-tab-panel').forEach(p => p.classList.toggle('active', p.dataset.subTabPanel === target));
+          persist();
+          if (target === 'commercial-ramp') renderRampChart();
+        });
+      });
+    });
+    // Top-level inputs
+    document.querySelectorAll('[data-key]').forEach(el => {
+      const h = () => {
+        const key = el.dataset.key;
+        let v = el.value;
+        if (el.type === 'number' || el.type === 'range') v = parseFloat(el.value);
+        state[key] = v;
+        // Competition change → default peak share (slider snaps to new baseline; user can re-override)
+        if (key === 'competition' && COMPETITION[v]) {
+          state.peakSharePct = Math.round(COMPETITION[v].peakShare * 100);
+          persist(); syncInputsFromState(); render(); return;
+        }
+        persist(); render();
+      };
+      el.addEventListener('input', h); el.addEventListener('change', h);
+    });
+    // Epi
+    document.querySelectorAll('[data-epi-key]').forEach(el => {
+      const h = () => { state.epi[el.dataset.epiKey] = parseFloat(el.value); persist(); render(); };
+      el.addEventListener('input', h); el.addEventListener('change', h);
+    });
+    // Phase durations / costs / overrides / flag magnitudes (delegated)
+    document.addEventListener('input', e => {
+      const tDur = e.target.dataset && e.target.dataset.phaseDur;
+      const tCost = e.target.dataset && e.target.dataset.phaseCost;
+      const tOver = e.target.dataset && e.target.dataset.posOver;
+      const tMag = e.target.dataset && e.target.dataset.flagMag;
+      if (tDur) { state.phase.duration[tDur] = parseFloat(e.target.value) || 0; persist(); render(); }
+      else if (tCost) { state.phase.cost[tCost] = parseFloat(e.target.value) || 0; persist(); render(); }
+      else if (tOver) {
+        const v = e.target.value === '' ? null : Math.max(0, Math.min(99, parseFloat(e.target.value))) / 100;
+        state.posOverride[tOver] = v; persist(); render();
+      }
+      else if (tMag) {
+        state.flags[tMag].mag = parseFloat(e.target.value);
+        const showEl = document.querySelector('[data-flag-mag-show="' + tMag + '"]');
+        if (showEl) showEl.textContent = state.flags[tMag].mag.toFixed(1) + '×';
+        persist(); render();
+      }
+    });
+
+    // Flag row click toggles state (delegated, ignores clicks inside the magnitude control)
+    document.addEventListener('click', e => {
+      const row = e.target.closest('.flag-row[data-flag-id]');
+      if (!row) return;
+      // If user clicked the magnitude slider area, don't toggle
+      if (e.target.closest('[data-no-toggle]')) return;
+      if (row.classList.contains('disabled')) return;
+      const flagId = row.dataset.flagId;
+      const flagDef = FLAGS.find(f => f.id === flagId);
+      if (!flagDef) return;
+      const newState = !state.flags[flagId].on;
+      state.flags[flagId].on = newState;
+      if (newState && flagDef.exclusiveGroup) {
+        FLAGS.forEach(f => { if (f.id !== flagId && f.exclusiveGroup === flagDef.exclusiveGroup) state.flags[f.id].on = false; });
+      }
+      persist(); syncInputsFromState(); render();
+    });
+    // Keyboard accessibility on flag rows
+    document.addEventListener('keydown', e => {
+      const row = e.target.closest && e.target.closest('.flag-row[data-flag-id]');
+      if (!row) return;
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); row.click(); }
+    });
+    // Ramp archetype row clicks
+    document.querySelectorAll('#ramp-archetype-body tr').forEach(tr => {
+      tr.style.cursor = 'pointer';
+      tr.addEventListener('click', () => { state.rampYears = parseFloat(tr.dataset.ramp); persist(); syncInputsFromState(); render(); });
+    });
+    // Buttons
+    const presetSel = document.getElementById('preset-select');
+    if (presetSel) presetSel.addEventListener('change', () => {
+      const key = presetSel.value;
+      if (!key) return;
+      state = applyPreset(key);
+      persist(); syncInputsFromState(); render();
+      // Reset the selector to blank so re-selecting same option triggers reload
+      presetSel.value = '';
+    });
+    // Indication library search → populate epi cascade + TA picker
+    const indInput = document.getElementById('indication-search');
+    if (indInput) {
+      const handleIndication = () => {
+        const v = indInput.value.trim();
+        if (!v || !INDICATION_LIBRARY[v]) return;
+        const lib = INDICATION_LIBRARY[v];
+        state.indication = v;
+        state.ta = lib.ta;
+        state.epi = Object.assign({}, state.epi, {
+          prevalence: lib.prevalence,
+          pctChronic: lib.pctChronic,
+          pctTreated: lib.pctTreated,
+          pctAddressable: lib.pctAddressable,
+          wacPrice: lib.wacPrice,
+        });
+        state.gtn = lib.gtn;
+        persist();
+        syncInputsFromState();
+        render();
+        // Clear the search field for the next lookup
+        indInput.value = '';
+      };
+      indInput.addEventListener('change', handleIndication);
+      indInput.addEventListener('blur', handleIndication);
+    }
+    document.getElementById('btn-reset').addEventListener('click', () => { try { localStorage.removeItem(STORAGE_KEY); } catch (e) {} state = defaultInputs(); syncInputsFromState(); render(); });
+    const btnPbDetach = document.getElementById('btn-pb-detach');
+    if (btnPbDetach) btnPbDetach.addEventListener('click', () => {
+      state.activePresetKey = null; persist(); render();
+    });
+    document.getElementById('btn-reset-pos').addEventListener('click', () => { state.posOverride = { p1_2: null, p2_3: null, p3_nda: null, nda_app: null }; persist(); render(); });
+    document.getElementById('btn-reset-phases').addEventListener('click', () => { state.phase = defaultPhase(); persist(); render(); });
+    document.getElementById('btn-clear-flags').addEventListener('click', () => { FLAGS.forEach(f => { state.flags[f.id].on = false; }); persist(); syncInputsFromState(); render(); });
+
+    // Deal Target tab — no special button handlers needed; deal-structure inputs are driven by data-key
+  }
+
+  function boot() {
+    try { populateSelects(); }       catch (e) { console.error(e); }
+    try { populateModalityTable(); } catch (e) { console.error(e); }
+    try { populateRoyalty(); }       catch (e) { console.error(e); }
+    try { populateFlagsList(); }     catch (e) { console.error(e); }
+    try { syncInputsFromState(); }   catch (e) { console.error(e); }
+    try { bindHandlers(); }          catch (e) { console.error(e); }
+    try { render(); }                catch (e) { console.error(e); }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+</script>
+
+</body>
+</html>

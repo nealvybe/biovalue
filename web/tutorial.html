@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<title>BioValue — Tutorial</title>
+<style>
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text: #0f172a;
+  --muted: #475569;
+  --muted-2: #64748b;
+  --brand-50: #eff6ff;
+  --brand-100: #dbeafe;
+  --brand-300: #93c5fd;
+  --brand-600: #2563eb;
+  --brand-700: #1d4ed8;
+  --brand-800: #1e40af;
+  --code-bg: #f1f5f9;
+  --table-stripe: #f8fafc;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.65; }
+
+/* Topnav — matches BioValue app */
+header.app { background: #ffffff; border-bottom: 1px solid var(--border); }
+header.app .row {
+  max-width: 1280px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 24px;
+}
+.logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+.logo-mark {
+  width: 36px; height: 36px; border-radius: 9px;
+  background: linear-gradient(135deg, var(--brand-600), var(--brand-800));
+  color: white; font-weight: 800; font-size: 14px;
+  display: flex; align-items: center; justify-content: center; letter-spacing: 0.02em;
+}
+.logo-text { line-height: 1.3; }
+.logo-text .name { font-weight: 700; font-size: 15px; line-height: 1.2; letter-spacing: -0.01em; color: var(--text); }
+.logo-text .sub { font-size: 12px; line-height: 1.3; color: var(--muted); margin-top: 0; }
+.nav { display: flex; align-items: center; gap: 18px; color: var(--muted); font-size: 13px; }
+.nav a { color: inherit; text-decoration: none; }
+.nav a:hover { color: var(--text); }
+.nav a.current { color: var(--brand-700); font-weight: 600; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+  text-decoration: none;
+}
+.pill-base { background: var(--brand-50); color: #3730a3; }
+a.pill-base:hover { background: var(--brand-100); }
+
+/* App footer — matches BioValue app */
+footer.app { text-align: center; padding: 20px 0 40px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); margin-top: 0; background: transparent; }
+
+.layout { display: grid; grid-template-columns: 240px 1fr; max-width: 1180px; margin: 0 auto; gap: 32px; padding: 24px; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  aside { position: static !important; }
+}
+aside { position: sticky; top: 24px; align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; }
+aside .toc-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+aside h3 { margin: 0 0 12px 0; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+aside ul { list-style: none; padding: 0; margin: 0; }
+aside li { margin: 0; }
+aside a { display: block; padding: 5px 0; color: var(--muted); text-decoration: none; font-size: 13px; line-height: 1.4; border-left: 2px solid transparent; padding-left: 10px; margin-left: -10px; transition: color 0.15s, border-color 0.15s, background 0.15s; }
+aside a:hover { color: var(--brand-700); border-left-color: var(--brand-300); }
+aside a.active { color: var(--brand-700); border-left-color: var(--brand-600); font-weight: 600; background: var(--brand-50); }
+
+main { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 40px 48px; box-shadow: 0 1px 2px rgba(15,23,42,0.04); }
+
+.kicker { display: inline-block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand-700); font-weight: 700; background: var(--brand-50); border: 1px solid var(--brand-100); border-radius: 999px; padding: 4px 10px; margin-bottom: 16px; }
+
+h1 { font-size: 32px; line-height: 1.2; margin: 0 0 8px 0; letter-spacing: -0.01em; }
+h2 { font-size: 22px; line-height: 1.3; margin: 40px 0 12px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border); letter-spacing: -0.005em; }
+h3 { font-size: 16px; line-height: 1.4; margin: 24px 0 8px 0; color: var(--text); }
+.lede { font-size: 17px; color: var(--muted); margin: 0 0 24px 0; line-height: 1.6; }
+p { margin: 0 0 14px 0; }
+ul, ol { margin: 0 0 14px 0; padding-left: 22px; }
+li { margin: 4px 0; }
+li > strong:first-child { color: var(--text); }
+
+a { color: var(--brand-700); }
+hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+code { font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 13px; background: var(--code-bg); border: 1px solid var(--border); padding: 1px 6px; border-radius: 5px; color: #334155; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; margin: 0 0 14px 0; }
+pre code { background: transparent; border: none; padding: 0; font-size: 13px; }
+
+table { border-collapse: collapse; width: 100%; margin: 12px 0 16px 0; font-size: 14px; }
+th { text-align: left; font-weight: 600; color: var(--muted); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 2px solid var(--border-strong); padding: 10px 12px; background: var(--table-stripe); }
+td { border-bottom: 1px solid var(--border); padding: 10px 12px; vertical-align: top; }
+.right { text-align: right; font-variant-numeric: tabular-nums; }
+tr:hover td { background: var(--brand-50); }
+
+blockquote { margin: 14px 0; padding: 12px 16px; background: var(--brand-50); border-left: 4px solid var(--brand-600); border-radius: 0 8px 8px 0; color: #1e3a8a; font-size: 14px; }
+
+.callout { background: var(--brand-50); border: 1px solid var(--brand-100); border-radius: 10px; padding: 14px 18px; margin: 16px 0; font-size: 14px; color: #1e3a8a; }
+.callout .ck-title { font-weight: 700; color: var(--brand-800); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 6px; }
+
+.tab-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; margin: 12px 0 18px 0; }
+.tab-card .tab-num { display: inline-block; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand-700); font-weight: 700; margin-bottom: 4px; }
+.tab-card h3 { margin-top: 0; }
+
+main > .endnote { color: var(--muted); font-size: 12px; margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+.value-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 16px 0 8px 0; }
+@media (max-width: 700px) { .value-grid { grid-template-columns: 1fr; } }
+.value-grid .vbox { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+.value-grid .vbox .label { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 6px; }
+.value-grid .vbox .lead { font-size: 14px; color: var(--text); line-height: 1.5; }
+.value-grid .vbox.upper { border-left: 3px solid var(--brand-600); }
+.value-grid .vbox.middle { border-left: 3px solid #64748b; }
+.value-grid .vbox.lower { border-left: 3px solid #b45309; }
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div class="row">
+    <a class="logo" href="index.html">
+      <div class="logo-mark">BV</div>
+      <div class="logo-text">
+        <div class="name">BioValue</div>
+        <div class="sub">Drug asset risk adjusted valuation tool</div>
+      </div>
+    </a>
+    <div class="nav">
+      <a href="about.html">About</a>
+      <a href="index.html">Tool</a>
+      <a href="tutorial.html" class="current">Tutorial</a>
+      <a href="market_report.html">Report</a>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+<aside>
+<div class="toc-card">
+<h3>On this page</h3>
+<ul id="toc"></ul>
+</div>
+</aside>
+
+<main>
+<span class="kicker">Tutorial</span>
+<h1>BioValue</h1>
+<p class="lede">BioValue is a single-page web app for risk-adjusted NPV (rNPV) valuation of biotech and pharma drug assets. Built for BD analysts, investors, and operators who need a fast, defensible standalone valuation of a single asset and a structured comparison to deal economics.</p>
+
+<p>This tutorial walks through the seven tabs in order, the modeling framework behind them, and how to read the Deal Analysis output. The worked example throughout is <strong>Sobi / Arthrosi (Pozdeutinurad)</strong> — a Phase III oral URAT1 inhibitor for chronic refractory gout, acquired by Sobi in December 2025 for $950M upfront + $550M milestones.</p>
+
+<h2 id="quick-start">Quick start</h2>
+<ol>
+<li>Open the <strong>Asset</strong> tab.</li>
+<li>Pick <strong>Load a prior deal → Sobi / Arthrosi — Pozdeutinurad</strong> from the dropdown at the top of the page. The active-preset banner appears above the tabs with the deal summary.</li>
+<li>The preset populates every input across all seven tabs with values calibrated to analyst consensus peak sales. The rest of the tutorial explains what those inputs do.</li>
+</ol>
+<p>To start from scratch, click <strong>Reset</strong> in the top bar. To detach from the preset, click the small "detach" link in the banner.</p>
+
+<h2 id="framework">The framework in one paragraph</h2>
+<p>BioValue computes three values for any asset:</p>
+<div class="value-grid">
+  <div class="vbox upper">
+    <div class="label">Upper · Asset rNPV</div>
+    <div class="lead">Standalone risk-adjusted NPV at the acquirer's cost of capital, with full peak and full launch probability. The asset's full economic value owned 100%.</div>
+  </div>
+  <div class="vbox middle">
+    <div class="label">Middle · Deal PV</div>
+    <div class="lead">Present value of the actual deal structure: upfront cash + risk-adjusted milestone PV + (for licensing deals) royalty stream PV.</div>
+  </div>
+  <div class="vbox lower">
+    <div class="label">Lower · Comm-adj rNPV</div>
+    <div class="lead">Same engine re-run at fixed 14% WACC, peak × 0.60, commercial PoS × 0.85. Conservative lower bound capturing execution risk, forecast bias, and integration friction.</div>
+  </div>
+</div>
+<p>Deal PV typically sits inside the <code>[Comm-adj, Asset rNPV]</code> range. Where it sits communicates risk-sharing intensity: near the lower bound = heavy milestone weighting; near Asset rNPV = upfront-heavy.</p>
+
+<h2 id="tab-asset">Tab 1 — Asset</h2>
+<p>The identity card for the asset and the differentiation flag catalog.</p>
+<ul>
+<li><strong>Asset name, indication, mechanism</strong> — labels, no impact on math.</li>
+<li><strong>Therapeutic area</strong> — controls which row of the MIT Project ALPHA PoS table is used as the baseline. ALPHA snapshot 2025-12-28; biomarker-stratified by TA. TAs outside ALPHA's 15-category taxonomy (Rare Disease, Cell &amp; Gene Therapy, Vaccines) use Wong-Siah-Lo / industry-aligned estimates flagged with an <code>est.</code> badge.</li>
+<li><strong>Modality</strong> — labels and notes only; modality-specific premia are captured via flags, not via TA.</li>
+<li><strong>Current stage</strong> — <code>Phase I</code> / <code>Phase II</code> / <code>Phase III</code> / <code>NDA/BLA</code>. Convention: "entering stage X" — the trial has not yet started and the X → X+1 transition is the next risk.</li>
+</ul>
+
+<h3>Differentiation flags</h3>
+<p>The flag panel is the model's core differentiator from a generic rNPV calculator. Flags are grouped into Regulatory, Trial design, Mechanism, Administration, and Risk. Each flag is backed by a published effect (BTD, Fast Track, biomarker selection) or an analyst convention (FIC, BIC, oral-vs-injectable premium).</p>
+<p>Active flags affect downstream values via <strong>two-pass stacking</strong>:</p>
+<ol>
+<li><strong>Baseline replacement.</strong> Turning on <code>Biomarker-selected population</code> swaps the TA's <code>unselected</code> PoS row for the <code>biomarker</code> row. In oncology this raises PoS; in some hematology indications it actually lowers Ph2→Ph3 PoS (the ALPHA data shows biomarker-stratified hema programs fail more at that transition).</li>
+<li><strong>Marginal uplifts.</strong> Other flags compound multiplicatively on the failure rate of the relevant transition. BTD adds a 23% relative reduction in Ph2→Ph3 failure; Fast Track adds 20% to NDA→Approval; etc.</li>
+</ol>
+<div class="callout">
+<div class="ck-title">Per-transition cap</div>
+90% — only applied when flag-driven adjustments push the value above 90%. Baseline ALPHA values that exceed 90% (like the 91% NDA→Approval rate) pass through unchanged.
+</div>
+
+<h3>Active effects sub-tab</h3>
+<p>The right pane shows a live breakdown of every active flag and its effect on PoS, price, life, ramp, and cost. This is the audit trail — every number in the headline rNPV can be traced back through this panel.</p>
+
+<h2 id="tab-market">Tab 2 — Disease &amp; Market</h2>
+<p>The patient-funnel and pricing inputs that feed peak revenue. The cascade is multiplicative:</p>
+<pre><code>Population × Prevalence × % Chronic × % Diagnosed &amp; Treated × % Addressable
+  = treated patient pool
+Treated pool × Net price (WAC × (1 − GTN%)) × WW multiplier
+  = addressable revenue pool at 100% share (WW net)</code></pre>
+<p>Each field has a typical-range hint and a sourced default in the indication library (39 entries, US-centric). Use the <strong>Indication</strong> search at the top to autofill the cascade for common conditions — type "MASH" or "RA" or "AFib" and pick from the list. The source citation appears next to the asset name once a library entry is selected.</p>
+<ul>
+<li><strong>Prevalence vs incidence.</strong> Prevalence for chronic disease (gout, RA, IBD, MASH). Incidence for acute or short-duration disease (most cancers, some infectious disease).</li>
+<li><strong>% Chronic / refractory.</strong> The share of prevalent patients in the addressable disease state. For chronic refractory gout: 13% of all gout patients.</li>
+<li><strong>% Diagnosed &amp; treated.</strong> Many diseases (obesity, MASH, mild depression) are massively under-diagnosed. Often the bottleneck.</li>
+<li><strong>% Addressable.</strong> The share of treated patients the drug can reach given label, mechanism, and competition.</li>
+<li><strong>WAC price.</strong> US list price per patient per year, before discounts.</li>
+<li><strong>GTN.</strong> Gross-to-net discount: rebates, 340B, Medicaid, patient assistance. Net price = WAC × (1 − GTN%). Specialty oncology 20–30%, immunology biologics 40–55%, primary care 50–70%, orphan with concentrated payers 10–20%.</li>
+<li><strong>WW / US multiplier.</strong> Total WW net revenue as a multiple of US net. Industry standard 1.5× for specialty; 1.6–2.0× for orphan; 1.3–1.5× for primary care.</li>
+</ul>
+<p>Right pane: <strong>Cascade &amp; pricing</strong> shows the full funnel and the price walk, with flag-driven price premia applied. <strong>Where peak sits</strong> compares your modelled rNPV to published TA peak-rNPV ranges. <strong>TA rNPV ranges</strong> shows all 19 TAs side-by-side.</p>
+
+<h2 id="tab-development">Tab 3 — Development</h2>
+<p>Phase-by-phase durations, costs, and manual PoS overrides.</p>
+<ul>
+<li><strong>Phase durations</strong> default to industry medians from Sertkaya et al. (JAMA Netw Open 2024). Edit individual phases for asset-specific timelines.</li>
+<li><strong>Phase costs</strong> (out-of-pocket $M) default to Chandra &amp; Mazumdar (JOIM 2024). Costs are probability-weighted by cumulative likelihood of reaching each stage and discounted at WACC.</li>
+<li><strong>PoS overrides.</strong> Manual override of any individual transition. Use when you have specific intelligence on the asset (a positive Phase 1 readout, a regulatory interaction) that the flag catalog doesn't capture.</li>
+</ul>
+<p>The breakdown sub-tab on the right shows the effective PoS for each transition, the trail of how it was computed (baseline → flag adjustments → cap or override), and a side-by-side of TA unselected vs biomarker PoS rates.</p>
+
+<h2 id="tab-commercial">Tab 4 — Commercial</h2>
+<p>The post-launch revenue shape.</p>
+<ul>
+<li><strong>Competition</strong> — picks the competitive tier (Underserved / Lightly contested / Contested / Saturated). Each tier has a baseline peak market share displayed inline in the dropdown options. Changing the tier snaps the slider to the new baseline.</li>
+<li><strong>Peak market share</strong> — your asset's share of treated patients at peak. Override the competition baseline as needed; flag-driven multiplicative share boosts (BIC adds +25% relative) are applied downstream.</li>
+<li><strong>Ramp to peak</strong> — years from launch to peak revenue. Linear ramp: year <code>y</code> fraction is <code>(y+1) / (ramp+1)</code> until peak, then 1.0. Specialty / orphan: 3 years. Primary care: 6–8 years.</li>
+<li><strong>Commercial life</strong> — total years of branded revenue from launch. Default 12. Flag adjustments apply downstream (orphan +2y; IRA exposure −1y).</li>
+<li><strong>Patent cliff (LoE erosion)</strong> — single percentage applied to revenue in the final two years to proxy post-LoE decline. At 45%, the last two years run at 55% of peak. Small molecule 45–60%; biologic 25–35%; orphan/specialty 15–25%; cell/gene therapy 0%.</li>
+</ul>
+<p>Right pane shows ramp archetypes overlaid on your curve and the LoE benchmark table.</p>
+
+<h2 id="tab-capital">Tab 5 — Capital</h2>
+<p>Cost of capital and royalty.</p>
+<ul>
+<li><strong>WACC</strong> — the acquirer's WACC, used to discount the asset's expected cash flows. Large pharma 8–10%, mid-cap specialty 10–12%, small-cap or focused biotech 12–14%. The BD-realistic 14% hurdle is applied separately on the Deal Analysis tab as part of the Commercial-adjusted lower bound.</li>
+<li><strong>Royalty</strong> — for licensing deals only. The rate the acquirer pays the licensor (acquiree / developer) on net sales. Set to <strong>0% for acquisitions</strong>. For licensing deals, enter the agreed rate.</li>
+</ul>
+<div class="callout">
+<div class="ck-title">Royalty mechanics post-refactor</div>
+Royalty does <strong>not</strong> reduce Asset rNPV. It appears as a separate royalty stream PV component inside Deal PV on the Deal Analysis tab. Example: AbbVie/IGI ISB 2001 at 14% royalty contributes ~$329M of royalty PV into the deal.
+</div>
+<p>Right pane: WACC benchmark bands and a royalty matrix (TA × stage), with your current configuration highlighted.</p>
+
+<h2 id="tab-summary">Tab 6 — Summary</h2>
+<p>The standalone-asset output dashboard.</p>
+<ul>
+<li><strong>Headline.</strong> Base Asset rNPV at the current stage, plus cumulative launch probability (LoA), expected years to launch, and PV of remaining R&amp;D cost.</li>
+<li><strong>rNPV by milestone.</strong> Bear / Base / Bull rNPV at each upcoming stage gate (Phase I through Approval). Peak multipliers: Bear 0.7×, Base 1.0×, Bull 1.3×.</li>
+<li><strong>Sensitivity table.</strong> rNPV at WACC × scenario.</li>
+<li><strong>rNPV across milestones chart.</strong> Same data, charted.</li>
+<li><strong>Methodology card.</strong> Engine equations, PoS sources, ALPHA snapshot reference, cap rules.</li>
+</ul>
+
+<h2 id="tab-dealanalysis">Tab 7 — Deal Analysis</h2>
+<p>The deal-vs-asset comparison and the three-value framework.</p>
+
+<h3>Sub-tabs</h3>
+<ul>
+<li><strong>Range</strong> — visual bar showing Comm-adj rNPV on the left, Asset rNPV on the right, and Deal PV pinned somewhere in between (or beyond, if the deal is unusually structured). A summary sentence tells you where the deal sits.</li>
+<li><strong>Waterfall</strong> — two stacked breakdowns. First, the haircuts from Asset rNPV down to Comm-adj rNPV. Second, the Deal PV waterfall: Upfront → +Reg PV → +Sales PV → +Royalty PV = Deal PV.</li>
+<li><strong>Calibration data</strong> — the seven validated single-asset deals with Asset rNPV, Comm-adj, Deal PV, and Deal/rNPV ratio. Median Deal PV is 55% of Asset rNPV.</li>
+</ul>
+
+<h3>Reading the three values</h3>
+<p>For Pozdeutinurad with the preset loaded:</p>
+<table>
+<thead><tr><th>Value</th><th class="right">Engine output</th><th>Interpretation</th></tr></thead>
+<tbody>
+<tr><td>Asset rNPV</td><td class="right">$1.39B</td><td>Full standalone value at Sobi's WACC (9.5%) with 1.0× peak</td></tr>
+<tr><td>Commercial-adjusted</td><td class="right">$323M</td><td>Same engine at 14% WACC, peak × 0.60, commPoS × 0.85</td></tr>
+<tr><td>Deal PV</td><td class="right">$1.17B</td><td>$950M upfront + $169M reg milestone PV + $55M sales milestone PV</td></tr>
+<tr><td>Deal PV / Asset rNPV</td><td class="right">84%</td><td>Light risk-sharing, upfront-heavy structure</td></tr>
+</tbody>
+</table>
+<p>Pozdeutinurad's Deal PV sits near the top of the range, reflecting Sobi's confidence (Ph2 success, oral specialty, gout franchise fit) and the lightest milestone weighting in the validation set.</p>
+<p>By contrast, <strong>ISB 2001</strong>'s Deal PV sits at 55% of Asset rNPV — heavier milestone tail, Phase II asset, and a licensing structure where royalty stream PV of $329M (at 14% royalty rate) makes up a meaningful share of total deal value.</p>
+
+<h3>Five drivers of the BD lower bound</h3>
+<p>The Commercial-adjusted parameters are fixed (not user-editable) because they represent a consistent BD-realistic haircut framework, not a scenario. They capture:</p>
+<ol>
+<li><strong>Forecast bias</strong> — analyst consensus peaks tend to overstate realized peaks.</li>
+<li><strong>Commercial execution risk</strong> — 15% of approved drugs fail commercially despite reaching market.</li>
+<li><strong>WACC differential</strong> — the BD function uses a higher hurdle than the corporate WACC.</li>
+<li><strong>Information asymmetry</strong> — the acquirer knows less about the asset than the licensor.</li>
+<li><strong>Integration costs</strong> — not all of an asset's standalone value transfers into the acquirer's P&amp;L.</li>
+</ol>
+
+<h2 id="faq">FAQ</h2>
+
+<h3>What WACC should I use?</h3>
+<p>Use the acquirer's corporate WACC for Asset rNPV. Large pharma 8–10%; mid-cap specialty 10–12%; small-cap biotech 12–14%. The Commercial-adjusted lower bound applies a fixed 14% on top of the haircut so you don't need to model BD WACC manually.</p>
+
+<h3>My drug has two indications — how do I model that?</h3>
+<p>Run the model twice with separate cascades (one per indication), then sum the Asset rNPVs. Apply a modest correlation discount (10–15%) for shared execution risk.</p>
+
+<h3>How do I handle a licensing deal vs an acquisition?</h3>
+<p>For an acquisition: royalty = 0%. The acquirer owns all revenue and Asset rNPV represents the full economic claim. For a licensing deal: set royalty to the agreed rate. Asset rNPV is unchanged; the royalty stream PV is added separately into Deal PV.</p>
+
+<h3>What's the difference between rNPV and NPV?</h3>
+<p>Standard NPV discounts cash flows by WACC only. rNPV multiplies each cash flow by the probability of reaching that stage before discounting. Early-stage assets are heavily discounted twice — once for time, once for risk. The two methods converge at approval.</p>
+
+<h3>Why does Deal PV sometimes exceed Asset rNPV?</h3>
+<p>Common reasons: (1) competitive auction, (2) acquirer-specific peak sales conviction higher than your base, (3) strategic / portfolio synergies, (4) platform / pipeline optionality not captured in single-asset rNPV. If Deal PV exceeds Asset rNPV by more than 20–30%, the deal likely includes platform value or strategic premium beyond the lead asset.</p>
+
+<h3>Why does Deal PV sometimes sit below the Commercial-adjusted lower bound?</h3>
+<p>Unusual and worth investigating. Most often it means either (1) the deal is heavily back-loaded into contingent milestones the acquirer doesn't actually expect to pay, or (2) the model's peak forecast is materially too high for the asset.</p>
+
+<h3>The Asset rNPV jumped when I changed competition — why?</h3>
+<p>Changing competition resets the peak market share slider to the new baseline. The slider is an override; re-adjust after picking a different competition tier if needed.</p>
+
+<h3>My TA shows a small <code>est.</code> badge — why?</h3>
+<p>MIT Project ALPHA covers 15 indication groups. For TAs outside that taxonomy (Rare Disease, Cell &amp; Gene Therapy, Vaccines, and a few others with low ALPHA sample size) the model falls back to Wong-Siah-Lo or industry-aligned estimates. The <code>est.</code> badge flags lower statistical confidence than ALPHA-native TAs.</p>
+
+<h2 id="data-sources">Data sources</h2>
+<ul>
+<li><strong>PoS</strong> — MIT Project ALPHA, snapshot 2025-12-28 (<code>data/mit_alpha/Main_20251228.txt</code>, <code>Biomarker_20251228.txt</code>). Industry-sponsored, biomarker-stratified.</li>
+<li><strong>Phase durations and R&amp;D costs</strong> — Sertkaya et al. (JAMA Netw Open 2024); Chandra &amp; Mazumdar (JOIM 2024).</li>
+<li><strong>TA peak-rNPV ranges</strong> — <code>MARKET_REPORT.md</code> in this repo.</li>
+<li><strong>Deal comps and validation</strong> — <code>DEAL_VALIDATION_ANALYSIS.md</code>. Seven single-asset deals (Pozdeutinurad, Abelacimab, Restoret, Efimosfermin, Farabursen, ISB 2001, VG-3927) calibrated to analyst consensus peak sales within ±5%.</li>
+<li><strong>Indication library</strong> — 39 conditions, each with a sourced citation (CDC, SEER, NCCN, ADA, AHA, etc.).</li>
+<li><strong>Royalty matrix</strong> — BioPharma Dealmakers 2024; Evaluate Pharma 2024.</li>
+</ul>
+
+</main>
+</div>
+
+<footer class="app">BioValue is open source under the <a href="license.html">MIT License</a>. Outputs are model estimates — not investment advice.</footer>
+
+<script>
+// Auto-build TOC from h2 headings
+(function() {
+  const toc = document.getElementById('toc');
+  const headings = document.querySelectorAll('main h2');
+  headings.forEach(h => {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.dataset.target = h.id;
+    li.appendChild(a);
+    toc.appendChild(li);
+  });
+
+  // Highlight current section on scroll
+  const tocLinks = toc.querySelectorAll('a');
+  const headingArr = Array.from(headings);
+  function onScroll() {
+    const top = window.scrollY + 100;
+    let activeId = headingArr[0] && headingArr[0].id;
+    for (const h of headingArr) {
+      if (h.offsetTop <= top) activeId = h.id;
+      else break;
+    }
+    tocLinks.forEach(a => {
+      a.classList.toggle('active', a.dataset.target === activeId);
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // Smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.getElementById(a.dataset.target);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,72 +1,100 @@
-# BioValue — Drug Asset rNPV Valuation Model
+# BioValue
 
-A risk-adjusted NPV (rNPV) framework for valuing pharmaceutical drug assets from IND-ready through commercial launch. Built for biotech/pharma analysts, BD teams, and investors.
+A risk-adjusted NPV (rNPV) framework for valuing pharmaceutical drug assets from preclinical through commercial launch. Built for biotech and pharma BD analysts, investors, and operators who need a fast, defensible standalone valuation of a single asset and a structured comparison to deal economics.
 
-## What This Is
+**Live tool:** [biovalue.aegisrna.com](https://biovalue.aegisrna.com)
+**Analytical writing:** [biovalue.substack.com](https://biovalue.substack.com)
+**Engineering / build notes:** [nfosignal.substack.com](https://nfosignal.substack.com)
 
-BioValue places a market value on a drug asset at every development milestone using:
-- **Phase-specific probability of success (PoS)** benchmarks by therapeutic area (19 TAs)
-- **Epidemiology cascade** to derive TAM and peak sales from disease prevalence/incidence
-- **rNPV engine** with Bear / Base / Bull scenarios
-- **Deal benchmarks** from 11 recent transactions (2022–2026)
-- **Sensitivity tables** across WACC, LoA, and peak sales
+## What it is
 
-## Repository Structure
+BioValue is a single-page web app that computes three values for any drug asset:
+
+- **Asset rNPV** — standalone risk-adjusted NPV at the acquirer's WACC, full peak, full launch probability. Represents the asset's full economic value owned 100%.
+- **Commercial-adjusted rNPV** — same engine re-run at fixed 14% WACC, peak × 0.60, commercial PoS × 0.85. A conservative BD-realistic lower bound.
+- **Deal PV** — upfront + risk-adjusted milestone PV + (for licensing deals) royalty stream PV.
+
+Deal PV typically sits inside the `[Comm-adj, Asset rNPV]` range. Where it sits communicates risk-sharing intensity.
+
+## Features
+
+- **MIT Project ALPHA PoS** — phase-transition probability of success benchmarks by therapeutic area (19 TAs), biomarker-stratified, snapshot 2025-12-28
+- **Differentiation flag catalog** — BTD, Fast Track, biomarker selection, FIC, BIC, oral-vs-injectable, orphan, and more, applied via two-pass stacking on top of the baseline PoS
+- **Indication library** — 39 conditions with sourced epi cascades (CDC, SEER, NCCN, ADA, AHA, etc.)
+- **Bear / Base / Bull scenarios** — peak revenue × 0.7 / 1.0 / 1.3
+- **Sensitivity table** — rNPV at WACC × scenario
+- **Deal Analysis tab** — Range / Waterfall / Calibration data sub-tabs, with 7 validated single-asset deal presets
+- **localStorage persistence** — your inputs survive page reloads
+
+## Repository structure
 
 ```
 biovalue/
-├── README.md
-├── docs/
-│   ├── TUTORIAL.md          ← How to use the model step-by-step
-│   └── MARKET_REPORT.md     ← Pharma deal landscape 2024–2026
-└── examples/
-    └── Arthrosi_Pozdeutinurad_rNPV_WorkedExample.xlsx
+├── README.md                  ← This file
+├── LICENSE                    ← MIT
+├── .gitignore
+├── .github/workflows/         ← GitHub Pages deploy
+├── web/                       ← The published site (biovalue.aegisrna.com)
+│   ├── index.html             ← The rNPV calculator
+│   ├── about.html
+│   ├── tutorial.html
+│   ├── market_report.html
+│   ├── license.html
+│   └── favicon.svg
+├── docs/                      ← Markdown sources (not published)
+│   ├── TUTORIAL.md
+│   ├── MARKET_REPORT.md
+│   ├── DEAL_VALIDATION_ANALYSIS.md
+│   └── substack/              ← Substack post drafts + chart PNGs
+├── data/
+│   ├── mit_alpha/             ← MIT Project ALPHA snapshot
+│   └── biovalue_multi_deal_reports/  ← Reference deal docs
+└── scripts/
+    ├── validate_presets.js    ← Engine validation runner (Node)
+    ├── biomarker_case_studies.js
+    └── generate_post_charts.py
 ```
 
-## Quick Start
+## Quick start
 
-1. Open `examples/Arthrosi_Pozdeutinurad_rNPV_WorkedExample.xlsx`
-2. Go to the **Assumptions** tab — all blue cells are inputs
-3. Enter your asset's therapeutic area, current stage, peak sales estimate, and WACC
-4. Read rNPV at each stage from the **rNPV Model** tab, Section D
+1. Open the tool at [biovalue.aegisrna.com](https://biovalue.aegisrna.com) (or `web/index.html` locally)
+2. On the **Asset** tab, pick a validated preset from "Load a prior deal" — Pozdeutinurad, Abelacimab, Restoret, Efimosfermin, Farabursen, ISB 2001, or VG-3927
+3. Each preset populates every input across all seven tabs with values calibrated to analyst consensus peak sales within ±5%
+4. Read the headline rNPV on the **Summary** tab; full Asset rNPV / Comm-adj / Deal PV breakdown on the **Deal Analysis** tab
 
-## Color Convention (Industry Standard)
+To model your own asset, click **Reset** in the top bar and fill in the inputs.
 
-| Color | Meaning |
-|-------|---------|
-| 🔵 Blue text | Hardcoded inputs — change these for your asset |
-| ⚫ Black text | Formulas — do not edit |
-| 🟢 Green text | Cross-sheet references |
-| 🟡 Yellow background | Key assumption requiring attention |
+## The rNPV formula
 
-## The rNPV Formula
+rNPV = Σ [ CFₜ × P(reach t) / (1 + r)ᵗ ] − Σ R&D-cost PV
 
-rNPV = Σ [ CFₜ × P(Successₜ) / (1 + r)ᵗ ]
+R&D costs are probability-weighted by cumulative likelihood of reaching each stage, then discounted at WACC. Commercial revenue is addressable WW peak pool × peak market share × ramp × year-by-year discount × cumulative LoA, with a patent-cliff haircut on terminal years.
 
-Where:
-- CFₜ = cash flow at time t (negative during R&D, positive post-launch)
-- P(Successₜ) = cumulative probability of reaching that milestone
-- r = WACC (risk-adjusted discount rate)
-
-## Key Data Sources
+## Data sources
 
 | Data | Source | Year |
-|------|--------|------|
-| Phase transition PoS | BIO/Informa/QLS Advisors Clinical Development Success Rates | 2011–2020 (pub. 2021) |
-| Phase transition PoS | IQVIA R&D Trends | 2024 |
-| R&D costs by phase | Sertkaya et al., JAMA Netw Open | 2024 |
-| R&D costs by phase | Chandra & Mazumdar, Analysis Group/JOIM | 2024 |
-| Gout epidemiology | DelveInsight Chronic Refractory Gout Market Report | 2025 |
-| Deal benchmarks | BioPharma Dealmakers, Evaluate Pharma, press releases | 2022–2026 |
+|---|---|---|
+| Phase transition PoS | MIT Project ALPHA database (industry-sponsored, biomarker-stratified) | Snapshot 2025-12-28 |
+| Fallback PoS for non-ALPHA TAs | Wong, Siah & Lo, *Biostatistics* | 2019 |
+| Phase durations | Sertkaya et al., *JAMA Network Open* | 2024 |
+| R&D costs by phase | Chandra & Mazumdar, Analysis Group / *Journal of Investment Management* | 2024 |
+| Indication library | CDC, SEER, NCCN, ADA, AHA, DelveInsight, NIH, primary literature | 2023–2025 |
+| Deal benchmarks & royalties | BioPharma Dealmakers, Evaluate Pharma, company press releases | 2022–2026 |
 
-## Worked Example: Sobi / Arthrosi (Pozdeutinurad, AR882)
+## Validation
 
-- **Indication:** Chronic refractory gout (oral URAT1 inhibitor)
-- **Stage at deal:** Phase III (fully enrolled)
-- **Actual deal:** $950M upfront + up to $550M milestones = $1.5B total (announced Jan 2025)
-- **Model rNPV at Ph III entry:** Bear $250M | Base $620M | Bull $1,050M
-- **Finding:** $950M upfront sits between Base and Bull — ~35% premium attributable to competitive urgency, franchise synergies (Krystexxa), and best-in-class oral positioning
+The model is calibrated against seven single-asset deals signed 2024–2026. See `docs/DEAL_VALIDATION_ANALYSIS.md` for methodology, sources, and per-deal narratives. Median Deal PV / Asset rNPV ratio across the validation set: **55%**.
+
+| Deal | Stage | Year |
+|---|---|---|
+| Sobi / Arthrosi (Pozdeutinurad) | Phase III | 2025 |
+| Novartis / Anthos (Abelacimab) | Phase III | 2025 |
+| Merck / EyeBio (Restoret) | Phase II | 2024 |
+| GSK / Boston (Efimosfermin) | Phase III | 2025 |
+| Novartis / Regulus (Farabursen) | Phase III | 2025 |
+| AbbVie / IGI (ISB 2001) | Phase II | 2025 |
+| Sanofi / Vigil (VG-3927) | Phase II | 2025 |
 
 ## License
 
-MIT
+MIT. See [LICENSE](LICENSE). Outputs are model estimates, not investment advice.
