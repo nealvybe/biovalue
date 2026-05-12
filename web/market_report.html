@@ -42,6 +42,14 @@ header.app .row { max-width: 1280px; margin: 0 auto; display: flex; align-items:
 .pill-base { background: var(--brand-50); color: #3730a3; }
 a.pill-base:hover { background: var(--brand-100); }
 
+.subscribe-section {
+  max-width: 560px; margin: 36px auto 12px; padding: 22px 24px 18px;
+  background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; text-align: center;
+}
+.subscribe-section h3 { margin: 0 0 6px 0; font-size: 15px; color: #0f172a; font-weight: 700; line-height: 1.4; }
+.subscribe-section p { margin: 0 0 14px 0; font-size: 13px; color: #475569; line-height: 1.5; }
+.subscribe-section iframe { max-width: 100%; display: block; margin: 0 auto; border: 0; background: transparent; }
+
 footer.app { text-align: center; padding: 20px 0 40px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); background: transparent; }
 
 .layout { display: grid; grid-template-columns: 240px 1fr; max-width: 1180px; margin: 0 auto; gap: 32px; padding: 24px; }
@@ -255,6 +263,11 @@ a { color: var(--brand-700); }
 </main>
 </div>
 
+<section class="subscribe-section">
+  <h3>Get new BioValue analysis</h3>
+  <p>Methodology posts and deal breakdowns, delivered when published.</p>
+  <iframe src="https://biovalue.substack.com/embed" width="480" height="150" frameborder="0" scrolling="no"></iframe>
+</section>
 <footer class="app">BioValue is open source under the <a href="license.html">MIT License</a>. Outputs are model estimates — not investment advice.</footer>
 
 <script>
