@@ -421,9 +421,127 @@ def chart_post4():
     print(f'wrote {out}')
 
 
+# ───────────────────────────────────────────────────────────────────
+# POST 5 — Biobuck headline vs inferred Deal PV (Boehringer / Immunitas)
+# ───────────────────────────────────────────────────────────────────
+
+def chart_post5():
+    # Headline biobuck total (€407.5M ~ $440M at 1.08)
+    headline = 440.0
+
+    # Inferred Deal PV components (central case)
+    upfront    = 40.0   # estimated (5–15% range = $20–65M)
+    dev_ms     = 40.0   # risk-adjusted dev milestones PV (range $30–50M)
+    reg_comm   = 30.0   # risk-adjusted reg + commercial milestones PV (range $20–40M)
+    royalty_pv = 60.0   # royalty stream PV at 8% blended on $1–2B risk-adj peak (range $40–80M)
+    central    = upfront + dev_ms + reg_comm + royalty_pv  # 170
+
+    deal_pv_low  = 120.0
+    deal_pv_high = 220.0
+
+    fig, ax = plt.subplots(figsize=(9.5, 6.0))
+
+    bar_width = 0.45
+    x_headline = 0
+    x_dealpv   = 1
+
+    # Headline biobuck bar (single, light gray)
+    ax.bar(x_headline, headline, width=bar_width, color=SLATE_200,
+           edgecolor='white', linewidth=1.2, zorder=2)
+
+    # Inferred Deal PV bar — stacked components
+    ax.bar(x_dealpv, upfront,    width=bar_width, color=BRAND_700,
+           edgecolor='white', linewidth=1.2, zorder=2, label='Upfront (estimated $40M)')
+    ax.bar(x_dealpv, dev_ms,     width=bar_width, bottom=upfront,
+           color=BRAND_600, edgecolor='white', linewidth=1.2, zorder=2,
+           label='Dev milestones PV (risk-adj.)')
+    ax.bar(x_dealpv, reg_comm,   width=bar_width, bottom=upfront + dev_ms,
+           color=BRAND_300, edgecolor='white', linewidth=1.2, zorder=2,
+           label='Reg + commercial milestones PV')
+    ax.bar(x_dealpv, royalty_pv, width=bar_width, bottom=upfront + dev_ms + reg_comm,
+           color=AMBER_500, edgecolor='white', linewidth=1.2, zorder=2,
+           label='Royalty stream PV (8% blended)')
+
+    # Range whisker on Deal PV bar
+    ax.errorbar(x_dealpv, central,
+                yerr=[[central - deal_pv_low], [deal_pv_high - central]],
+                fmt='none', ecolor=SLATE_700, capsize=10,
+                elinewidth=1.5, capthick=1.5, zorder=4)
+
+    # Component sub-labels inside the right bar
+    cum = 0
+    component_labels = [
+        ('Upfront (est.)\n$40M',          upfront,    'white'),
+        ('Dev milestones\n$40M',          dev_ms,     'white'),
+        ('Reg + comm.\n$30M',             reg_comm,   SLATE_900),
+        ('Royalty stream\n$60M',          royalty_pv, SLATE_900),
+    ]
+    for lbl, val, color in component_labels:
+        ax.text(x_dealpv + 0.30, cum + val / 2, lbl,
+                ha='left', va='center', fontsize=9, color=color,
+                fontweight='bold' if color == 'white' else 'normal')
+        cum += val
+
+    # Top labels for each bar — value sits higher, subtitle below it,
+    # with a clear gap to the bar/whisker top
+    ax.text(x_headline, headline + 45, f'${headline:.0f}M', ha='center',
+            fontsize=13, fontweight='bold', color=SLATE_900)
+    ax.text(x_headline, headline + 25, 'headline biobuck', ha='center',
+            fontsize=9, color=SLATE_600)
+
+    ax.text(x_dealpv, deal_pv_high + 45, f'${central:.0f}M central',
+            ha='center', fontsize=13, fontweight='bold', color=SLATE_900)
+    ax.text(x_dealpv, deal_pv_high + 25, f'${deal_pv_low:.0f}–${deal_pv_high:.0f}M range',
+            ha='center', fontsize=9, color=SLATE_600)
+
+    # Ratio annotation between bars
+    ax.annotate(
+        f'Inferred Deal PV\n≈ {central/headline*100:.0f}% of headline',
+        xy=(0.5, 280), fontsize=10.5, color=BRAND_700, ha='center',
+        fontweight='bold',
+        bbox=dict(boxstyle='round,pad=0.5', facecolor=BRAND_50,
+                  edgecolor=BRAND_100, linewidth=0.8))
+
+    ax.set_xticks([x_headline, x_dealpv])
+    ax.set_xticklabels(['Headline biobuck\n(€407.5M ≈ $440M)',
+                        'Inferred Deal PV\n(BioValue decomposition)'],
+                       fontsize=10.5)
+    ax.set_ylabel('USD (millions)')
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f'${v:,.0f}M'))
+    ax.set_ylim(0, 560)
+    ax.set_xlim(-0.6, 1.95)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_color(SLATE_200)
+    ax.grid(axis='x', visible=False)
+    ax.tick_params(axis='x', length=0)
+    ax.legend(loc='upper right', frameon=False, fontsize=9, ncol=1,
+              bbox_to_anchor=(1.00, 0.78))
+
+    fig.suptitle('A €407M biobuck headline is worth roughly $170M today',
+                 fontsize=14, fontweight='bold', color=SLATE_900,
+                 y=1.00, x=0.02, ha='left')
+    fig.text(0.02, 0.93,
+             'Boehringer / Immunitas (IMT-380, preclinical anti-CD161), decomposed using BioValue heuristics',
+             fontsize=10, color=SLATE_600, ha='left')
+
+    fig.text(0.02, -0.02,
+             'Source: BioValue rNPV engine + biobuck structural heuristics. '
+             'Upfront undisclosed; central estimate $40M (~10% of headline). '
+             'Whiskers show $120–$220M range across plausible upfront and royalty assumptions.',
+             fontsize=8, color=SLATE_400, ha='left')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.89])
+    out = os.path.join(OUT_DIR, 'post-5-biobuck-decomp.png')
+    plt.savefig(out)
+    plt.close()
+    print(f'wrote {out}')
+
+
 if __name__ == '__main__':
     chart_post1()
     chart_post2()
     chart_post3()
     chart_post4()
+    chart_post5()
     print('Done.')
