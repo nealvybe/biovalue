@@ -104,7 +104,7 @@ The corollary is that the cases where the framework fails are useful in their ow
 
 ---
 
-*The seven validated deals and the three-value framework are part of an open-source rNPV tool called [BioValue](https://github.com/...). Inputs, outputs, and source data are public. Every number in the table above can be reproduced by loading the corresponding deal preset and reading the Deal Analysis tab. If you want to pressure-test the assumptions on a different asset, the same engine runs in the browser.*
+*The seven validated deals and the three-value framework are part of an open-source rNPV tool called [BioValue](https://nealvybe.github.io/biovalue/). Inputs, outputs, and source data are public. Every number in the table above can be reproduced by loading the corresponding deal preset and reading the Deal Analysis tab. If you want to pressure-test the assumptions on a different asset, the same engine runs in the browser.*
 
 ---
 

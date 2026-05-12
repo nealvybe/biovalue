@@ -139,7 +139,7 @@ The BD analyst's first task on any new deal is to identify which framework appli
 
 ---
 
-*The four-post series has used [BioValue](https://github.com/...) as the analytical backbone throughout. Posts 1 and 2 cite deal presets that load directly into the engine and reproduce every number in the tables. Post 3 documents where BioValue's rNPV framework breaks for CGT and proposes the cash-flow shape primitives that a CGT-appropriate extension would need. Post 4 acknowledges that the four platform deals discussed here are not currently in BioValue's preset library; adding them would require not just rNPV inputs but explicit pipeline and platform decompositions, which is a different kind of model. A platform-aware version of BioValue is a logical future build.*
+*The four-post series has used [BioValue](https://nealvybe.github.io/biovalue/) as the analytical backbone throughout. Posts 1 and 2 cite deal presets that load directly into the engine and reproduce every number in the tables. Post 3 documents where BioValue's rNPV framework breaks for CGT and proposes the cash-flow shape primitives that a CGT-appropriate extension would need. Post 4 acknowledges that the four platform deals discussed here are not currently in BioValue's preset library; adding them would require not just rNPV inputs but explicit pipeline and platform decompositions, which is a different kind of model. A platform-aware version of BioValue is a logical future build.*
 
 ---
 

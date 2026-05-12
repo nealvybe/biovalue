@@ -2,7 +2,7 @@
 
 A risk-adjusted NPV (rNPV) framework for valuing pharmaceutical drug assets from preclinical through commercial launch. Built for biotech and pharma BD analysts, investors, and operators who need a fast, defensible standalone valuation of a single asset and a structured comparison to deal economics.
 
-**Live tool:** [biovalue.aegisrna.com](https://biovalue.aegisrna.com)
+**Live tool:** [nealvybe.github.io/biovalue](https://nealvybe.github.io/biovalue/)
 **Analytical writing:** [biovalue.substack.com](https://biovalue.substack.com)
 **Engineering / build notes:** [nfosignal.substack.com](https://nfosignal.substack.com)
 
@@ -34,7 +34,7 @@ biovalue/
 ├── LICENSE                    ← MIT
 ├── .gitignore
 ├── .github/workflows/         ← GitHub Pages deploy
-├── web/                       ← The published site (biovalue.aegisrna.com)
+├── web/                       ← The published site (nealvybe.github.io/biovalue)
 │   ├── index.html             ← The rNPV calculator
 │   ├── about.html
 │   ├── tutorial.html
@@ -57,7 +57,7 @@ biovalue/
 
 ## Quick start
 
-1. Open the tool at [biovalue.aegisrna.com](https://biovalue.aegisrna.com) (or `web/index.html` locally)
+1. Open the tool at [nealvybe.github.io/biovalue](https://nealvybe.github.io/biovalue/) (or `web/index.html` locally)
 2. On the **Asset** tab, pick a validated preset from "Load a prior deal" — Pozdeutinurad, Abelacimab, Restoret, Efimosfermin, Farabursen, ISB 2001, or VG-3927
 3. Each preset populates every input across all seven tabs with values calibrated to analyst consensus peak sales within ±5%
 4. Read the headline rNPV on the **Summary** tab; full Asset rNPV / Comm-adj / Deal PV breakdown on the **Deal Analysis** tab

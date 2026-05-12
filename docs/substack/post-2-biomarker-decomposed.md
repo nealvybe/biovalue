@@ -8,7 +8,7 @@ That intuition is right in some specific cases. It's flat wrong in others. The r
 
 The four value props are not exclusive. A single drug program can deliver multiple biomarker value props, and the rNPV effects compound. The valuation analyst's job is to identify which apply and value each one against its own evidence base. The hand-wavy "+20% premium" is what you get when you don't do that work.
 
-All four worked examples below are computed using [BioValue](https://github.com/...), an open-source rNPV tool. Inputs and outputs are reproducible by loading the corresponding case-study preset.
+All four worked examples below are computed using [BioValue](https://nealvybe.github.io/biovalue/), an open-source rNPV tool. Inputs and outputs are reproducible by loading the corresponding case-study preset.
 
 ![The four biomarker value props produce different rNPV signatures](post-2-value-props.png)
 
@@ -130,7 +130,7 @@ The valuation analyst who applies a flat "+20%" without identifying which of the
 
 ---
 
-*All four worked examples are computed using the [BioValue](https://github.com/...) rNPV engine. Case-study presets for tafamidis, lecanemab, and tezepelumab are included; the endpoint-biomarker comparison uses an Ophthalmology-TA Phase II asset with Phase III duration overrides. Every number in the tables above can be reproduced by loading the corresponding preset and reading the Deal Analysis tab, or by running `scripts/biomarker_case_studies.js` against the engine.*
+*All four worked examples are computed using the [BioValue](https://nealvybe.github.io/biovalue/) rNPV engine. Case-study presets for tafamidis, lecanemab, and tezepelumab are included; the endpoint-biomarker comparison uses an Ophthalmology-TA Phase II asset with Phase III duration overrides. Every number in the tables above can be reproduced by loading the corresponding preset and reading the Deal Analysis tab, or by running `scripts/biomarker_case_studies.js` against the engine.*
 
 ---
 

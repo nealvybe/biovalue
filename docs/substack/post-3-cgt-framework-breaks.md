@@ -106,7 +106,7 @@ When the BD/buy-side analyst gets a CGT comp table with Deal PV at "200% of stan
 
 ---
 
-*[BioValue](https://github.com/...) currently uses chronic-drug rNPV. The framework is the right tool for the 80%+ of single-asset deals that fit its assumptions (post 1 documents the empirical norms across seven such deals). It produces incoherent results for CGT, which is why Neurona and Verve were dropped from the validation set. A CGT-appropriate extension to the engine is a logical next build; the Neurona example above was computed manually using the cash-flow shape described in this post.*
+*[BioValue](https://nealvybe.github.io/biovalue/) currently uses chronic-drug rNPV. The framework is the right tool for the 80%+ of single-asset deals that fit its assumptions (post 1 documents the empirical norms across seven such deals). It produces incoherent results for CGT, which is why Neurona and Verve were dropped from the validation set. A CGT-appropriate extension to the engine is a logical next build; the Neurona example above was computed manually using the cash-flow shape described in this post.*
 
 ---
 

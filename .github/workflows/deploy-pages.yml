@@ -22,8 +22,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Write CNAME for custom domain
-        run: echo "biovalue.aegisrna.com" > web/CNAME
+      # Custom domain CNAME — uncomment when DNS for biovalue.aegisrna.com is configured.
+      # - name: Write CNAME for custom domain
+      #   run: echo "biovalue.aegisrna.com" > web/CNAME
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
