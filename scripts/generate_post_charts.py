@@ -538,10 +538,111 @@ def chart_post5():
     print(f'wrote {out}')
 
 
+# ───────────────────────────────────────────────────────────────────
+# POST 6 — Band updated with Bayer/Perfuse as the 8th validated deal
+# ───────────────────────────────────────────────────────────────────
+
+def chart_post6():
+    # Sorted descending by ratio. Perfuse highlighted as the new addition.
+    # Tuple: (label, ratio, color_key)
+    deals = [
+        ('Sobi / Arthrosi (Pozdeutinurad, Ph III)', 84, 'amber'),
+        ('Sanofi / Vigil (VG-3927, Ph II)',         64, 'slate'),
+        ('Merck / EyeBio (Restoret, Ph II)',        58, 'slate'),
+        ('AbbVie / IGI (ISB 2001, Ph II)',          55, 'slate'),
+        ('Bayer / Perfuse (PER-001, Ph II)',        50, 'highlight'),
+        ('Novartis / Anthos (Abelacimab, Ph III)',  45, 'slate'),
+        ('Novartis / Regulus (Farabursen, Ph III)', 31, 'slate'),
+        ('GSK / Boston (Efimosfermin, Ph III)',     30, 'slate'),
+    ]
+    color_map = {
+        'slate':     BRAND_600,
+        'amber':     AMBER_500,
+        'highlight': GREEN_700,
+    }
+
+    labels = [d[0] for d in deals]
+    ratios = [d[1] for d in deals]
+    sorted_ratios = sorted(ratios)
+    # Average of middle two (50 + 55) / 2 = 52.5; round up to 53 to match validation table
+    median_ratio = int((sorted_ratios[3] + sorted_ratios[4]) / 2 + 0.5)
+    y_positions = np.arange(len(deals))
+
+    fig, ax = plt.subplots(figsize=(10.5, 6.4))
+
+    # Reference band 30–65% shaded
+    ax.axvspan(30, 65, color=BRAND_50, alpha=0.7, zorder=0,
+               label='Typical band (30–65%)')
+
+    # Bars
+    bar_colors = [color_map[d[2]] for d in deals]
+    ax.barh(y_positions, ratios, color=bar_colors, height=0.62,
+            edgecolor='white', linewidth=1.5, zorder=2)
+
+    # Median line
+    ax.axvline(median_ratio, color=BRAND_800, linestyle='--', linewidth=1.5,
+               zorder=3, label=f'Median ({median_ratio}%)')
+
+    # Value labels at end of bars
+    for i, r in enumerate(ratios):
+        ax.text(r + 1.5, y_positions[i], f'{r}%', va='center',
+                fontsize=10, fontweight='bold', color=SLATE_900)
+
+    ax.set_yticks(y_positions)
+    ax.set_yticklabels(labels)
+    ax.set_xlim(0, 100)
+    ax.set_xlabel('Deal PV / Asset rNPV')
+    ax.set_xticks([0, 25, 50, 75, 100])
+    ax.set_xticklabels(['0%', '25%', '50%', '75%', '100%'])
+    ax.invert_yaxis()
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.tick_params(axis='y', length=0)
+    ax.grid(axis='y', visible=False)
+
+    ax.legend(loc='lower right', frameon=False, fontsize=9.5)
+
+    # Callout for Perfuse (the new 8th deal) — placed in clear space below the bar
+    perfuse_idx = next(i for i, d in enumerate(deals) if 'Perfuse' in d[0])
+    ax.annotate(
+        'New: $300M upfront,\n'
+        '$2.45B total, Phase II,\n'
+        'dual-indication FIC.\n'
+        'Lands inside the band.',
+        xy=(50, perfuse_idx + 0.05),
+        xytext=(64, perfuse_idx + 1.55),
+        fontsize=8.5, color=SLATE_700, ha='left', va='center',
+        bbox=dict(boxstyle='round,pad=0.45', facecolor='#f0fdf4',
+                  edgecolor=GREEN_700, linewidth=0.8, alpha=0.97),
+        arrowprops=dict(arrowstyle='->', color=GREEN_700, lw=1.0,
+                        connectionstyle='arc3,rad=-0.25'))
+
+    # Title + subtitle with explicit vertical spacing
+    fig.suptitle('Bayer / Perfuse lands at 50%, inside the band',
+                 fontsize=14, fontweight='bold', color=SLATE_900,
+                 y=1.02, x=0.02, ha='left')
+    fig.text(0.02, 0.95,
+             'Deal PV as a percentage of Asset rNPV, eight validated single-asset deals (2024–2026)',
+             fontsize=10, color=SLATE_600, ha='left')
+
+    fig.text(0.02, -0.025,
+             'Source: BioValue rNPV engine. Median Deal PV / Asset rNPV = 53% across 8 deals. '
+             'Perfuse modeled DR-anchored; adding glaucoma option value tightens the ratio toward the lower edge.',
+             fontsize=8, color=SLATE_400, ha='left')
+
+    plt.tight_layout(rect=[0, 0.02, 1, 0.90])
+    out = os.path.join(OUT_DIR, 'post-6-band-with-perfuse.png')
+    plt.savefig(out)
+    plt.close()
+    print(f'wrote {out}')
+
+
 if __name__ == '__main__':
     chart_post1()
     chart_post2()
     chart_post3()
     chart_post4()
     chart_post5()
+    chart_post6()
     print('Done.')

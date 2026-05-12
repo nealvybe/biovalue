@@ -1023,7 +1023,7 @@
               <div id="dt-waterfall-list"></div>
             </div>
             <div class="sub-tab-panel" data-sub-tab-panel="dt-calibration">
-              <div class="panel-hint">All 7 validated single-asset deals: Asset rNPV, Commercial-adjusted rNPV (lower bound), Deal PV, and deal position in range.</div>
+              <div class="panel-hint">All 8 validated single-asset deals: Asset rNPV, Commercial-adjusted rNPV (lower bound), Deal PV, and deal position in range.</div>
               <table class="data compact" id="dt-calibration-table">
                 <thead><tr>
                   <th>Deal</th><th>Stage</th>
@@ -1040,6 +1040,7 @@
                   <tr><td>Novartis / Regulus (farabursen)</td><td>Phase III</td><td class="right">$4.05B</td><td class="right">$1.21B</td><td class="right">$1.26B</td><td class="right">31%</td></tr>
                   <tr><td>AbbVie / IGI (ISB 2001)</td><td>Phase II</td><td class="right">$2.20B</td><td class="right">$695M</td><td class="right">$1.20B</td><td class="right">55%</td></tr>
                   <tr><td>Sanofi / Vigil (VG-3927)</td><td>Phase II</td><td class="right">$0.75B</td><td class="right">$235M</td><td class="right">$0.48B</td><td class="right">64%</td></tr>
+                  <tr><td>Bayer / Perfuse (PER-001)</td><td>Phase II</td><td class="right">$1.80B</td><td class="right">$545M</td><td class="right">$0.90B</td><td class="right">50%</td></tr>
                 </tbody>
               </table>
               <div class="hint" style="margin-top: 10px; font-size: 11px; color: var(--muted); line-height: 1.5;">
@@ -1047,7 +1048,7 @@
                 <strong>Comm-adj rNPV</strong>: lower bound — same engine recomputed at WACC=14%, peak×0.60, commPoS×0.85.<br>
                 <strong>Deal PV</strong>: upfront + risk-adjusted milestone PV + (for licensing deals) royalty stream PV.<br>
                 <strong>Deal/rNPV</strong>: where Deal PV sits as % of Asset rNPV.<br>
-                Median Deal PV across 7 deals: <strong>55% of Asset rNPV</strong>. Comm-adj typically lands around 25–35% of Asset rNPV. Deal PV usually sits between these two. Full citations in docs/DEAL_VALIDATION_ANALYSIS.md.
+                Median Deal PV across 8 deals: <strong>53% of Asset rNPV</strong>. Comm-adj typically lands around 25–35% of Asset rNPV. Deal PV usually sits between these two. Full citations in docs/DEAL_VALIDATION_ANALYSIS.md.
               </div>
             </div>
           </div>
@@ -1499,6 +1500,35 @@
       rampYears: 5, commercialLifeBase: 12, loeHaircutPct: 40,
       dealUpfront_M: 470, dealMilestones_M: 120, dealMilestoneRegPct: 0, dealSalesProb: 70,
       dealCounterparty: 'Sanofi (May 2025) · total $590M (with CVR)',
+      flagsOn: ['fic'],
+    },
+    perfuse: {
+      label: 'Bayer / Perfuse — PER-001 (Phase II, ophthalmology)',
+      summary: 'Bayer acquired Perfuse Therapeutics in <strong>May 2026</strong> for <span class="preset-banner-stat">$300M upfront</span> <span class="preset-banner-stat">$2.15B milestones</span> <span class="preset-banner-stat">$2.45B total</span>. <strong>First-in-class endothelin receptor antagonist</strong> delivered as a sustained-release bio-erodible intravitreal implant. Phase II in both diabetic retinopathy and glaucoma; Perfuse positions PER-001 as a potential first disease-modifying treatment for either. Bayer rebuilding ophthalmology pipeline ahead of Eylea biosimilar erosion.',
+      assetName: 'PER-001', indication: 'Diabetic retinopathy + glaucoma (anchored to DR)',
+      ta: 'Ophthalmology', modality: 'Small molecule', mechanism: 'Endothelin receptor antagonist (sustained-release intravitreal implant)',
+      currentStage: 'Phase II', wacc: 8.0,
+      epi: { population: 335_000_000, prevalence: 0.50, pctChronic: 100, pctTreated: 70, pctAddressable: 50, wacPrice: 18000 },
+      gtn: 30, wwMult: 1.5,
+      competition: 'Contested (3–4 approved)', peakSharePct: 18,
+      rampYears: 5, commercialLifeBase: 12, loeHaircutPct: 30,
+      dealUpfront_M: 300, dealMilestones_M: 2150, dealMilestoneRegPct: 50, dealSalesProb: 70,
+      dealCounterparty: 'Bayer (May 2026) · total $2.45B acquisition',
+      flagsOn: ['fic'],
+    },
+    immunitas: {
+      label: 'Boehringer / Immunitas — IMT-380 (Preclinical, I&I) — upfront estimated',
+      summary: 'Boehringer licensed IMT-380 from Immunitas in <strong>May 2026</strong> for an <span class="preset-banner-stat">undisclosed upfront</span> <span class="preset-banner-stat">€407.5M total biobucks (~$440M)</span> <span class="preset-banner-stat">+ tiered royalties</span>. <strong>First-in-class anti-CD161 monoclonal antibody</strong> that selectively depletes pathogenic CD161+ T cells. Preclinical data shown in Crohn\'s patient samples and skin inflammation models. <em>Upfront not disclosed; preset assumes $40M upfront (~10% of headline) as a central estimate. Adjust the upfront slider to test the range.</em>',
+      assetName: 'IMT-380', indication: "Chronic inflammatory disease (anchored to Crohn's)",
+      ta: 'Immunology / Inflammation', modality: 'Monoclonal antibody', mechanism: 'Anti-CD161 depleting mAb',
+      currentStage: 'Preclinical', wacc: 8.5,
+      epi: { population: 335_000_000, prevalence: 0.2, pctChronic: 100, pctTreated: 85, pctAddressable: 45, wacPrice: 50000 },
+      gtn: 50, wwMult: 1.8,
+      competition: 'Saturated (5+ approved)', peakSharePct: 5,
+      rampYears: 5, commercialLifeBase: 12, loeHaircutPct: 30,
+      dealUpfront_M: 40, dealMilestones_M: 400, dealMilestoneRegPct: 40, dealSalesProb: 50,
+      royalty: 8,
+      dealCounterparty: 'Boehringer (May 2026) · €407.5M biobuck (~$440M) + tiered royalties · upfront estimated at $40M',
       flagsOn: ['fic'],
     },
     // ──────────────────────────────────────────────────────────────
